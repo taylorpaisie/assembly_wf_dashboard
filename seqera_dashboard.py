@@ -3,6 +3,7 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 import base64
 import io
+import plotly.express as px
 
 # Initialize Dash app with external stylesheets
 app = Dash(__name__, external_stylesheets=[dbc.themes.COSMO])
@@ -57,6 +58,18 @@ app.layout = dbc.Container([
                     ),
                     html.Label("Select X-Axis:"),
                     dcc.Dropdown(id='x-axis-dropdown', className="mt-2"),
+                    html.Label("Select Y-Axis:"),
+                    dcc.Dropdown(id='y-axis-dropdown', className="mt-2"),
+                ])
+            ])
+        ])
+    ]),
+    dbc.Row([
+        dbc.Col([
+            dbc.Card([
+                dbc.CardHeader("Bar Graph"),
+                dbc.CardBody([
+                    dcc.Graph(id='bar-graph')
                 ])
             ])
         ])
@@ -86,20 +99,40 @@ def handle_file_upload(contents, filename):
             return f"Error uploading file: {e}", []
     return "No file uploaded yet", []
 
-# Callback to update X-axis dropdown
+# Callback to update X-axis and Y-axis dropdowns
 @app.callback(
     Output('x-axis-dropdown', 'options'),
+    Output('y-axis-dropdown', 'options'),
     Input('sheet-dropdown', 'value')
 )
-def update_x_axis_options(sheet_name):
+def update_axis_dropdowns(sheet_name):
     if sheet_name and uploaded_data:
         try:
             # Load the selected sheet
             df = uploaded_data.parse(sheet_name)
-            return [{'label': col, 'value': col} for col in df.columns]
+            options = [{'label': col, 'value': col} for col in df.columns]
+            return options, options
         except Exception as e:
-            return []
-    return []
+            return [], []
+    return [], []
+
+# Callback to generate bar graph
+@app.callback(
+    Output('bar-graph', 'figure'),
+    Input('sheet-dropdown', 'value'),
+    Input('x-axis-dropdown', 'value'),
+    Input('y-axis-dropdown', 'value')
+)
+def update_bar_graph(sheet_name, x_axis, y_axis):
+    if sheet_name and x_axis and y_axis and uploaded_data:
+        try:
+            # Load the selected sheet and plot the data
+            df = uploaded_data.parse(sheet_name)
+            fig = px.bar(df, x=x_axis, y=y_axis, title=f"Bar Graph of {x_axis} vs {y_axis}")
+            return fig
+        except Exception as e:
+            return px.bar(title="Error generating graph")
+    return px.bar(title="No data to display")
 
 # Run the app
 if __name__ == "__main__":
