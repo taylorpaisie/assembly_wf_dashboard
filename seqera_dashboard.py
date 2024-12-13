@@ -116,7 +116,7 @@ def update_axis_dropdowns(sheet_name):
             return [], []
     return [], []
 
-# Callback to generate bar graph
+# Callback to generate bar graph with distinct colors for X-axis variables
 @app.callback(
     Output('bar-graph', 'figure'),
     Input('sheet-dropdown', 'value'),
@@ -128,7 +128,21 @@ def update_bar_graph(sheet_name, x_axis, y_axis):
         try:
             # Load the selected sheet and plot the data
             df = uploaded_data.parse(sheet_name)
-            fig = px.bar(df, x=x_axis, y=y_axis, title=f"Bar Graph of {x_axis} vs {y_axis}")
+            fig = px.bar(
+                df,
+                x=x_axis,
+                y=y_axis,
+                color=x_axis,  # Use X-axis values to determine colors
+                title=f"Bar Graph of {x_axis} vs {y_axis}",
+                color_discrete_sequence=px.colors.qualitative.Plotly  # Built-in color scheme
+            )
+            # Additional styling
+            fig.update_layout(
+                title_font=dict(size=20, family='Arial', color='blue'),
+                xaxis_title=f"X-axis: {x_axis}",
+                yaxis_title=f"Y-axis: {y_axis}",
+                plot_bgcolor="white"  # Background color
+            )
             return fig
         except Exception as e:
             return px.bar(title="Error generating graph")
