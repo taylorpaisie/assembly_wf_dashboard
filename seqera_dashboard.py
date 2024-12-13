@@ -150,7 +150,7 @@ def generate_coverage_bar_plot(sheet_name, x_axis, y_axis):
 
             # Create a color mapping for each unique X-axis value
             unique_x_values = df[x_axis].unique()
-            color_palette = qualitative.Plotly  # Use the Plotly color palette
+            color_palette = qualitative.Vivid  # Use the Plotly color palette
             color_map = {value: color for value, color in zip(unique_x_values, color_palette)}
 
             # Assign colors based on X-axis values
