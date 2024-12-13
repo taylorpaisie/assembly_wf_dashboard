@@ -128,16 +128,17 @@ def generate_coverage_bar_plot(sheet_name, x_axis, y_axis):
         try:
             # Load the selected sheet
             df = uploaded_data.parse(sheet_name)
-            
-            # Check if the y-axis column matches the "Coverage_(mean[x]_+/-_stdev[x])" pattern
+
+            # Parse coverage data if the column is the specific coverage column
             if y_axis == "Coverage_(mean[x]_+/-_stdev[x])":
+                # Extract mean and stddev using regex
                 coverage_data = df[y_axis].str.extract(r'(?P<mean>[\d.]+)x_.*(?P<stddev>[\d.]+)x')
-                df['mean'] = coverage_data['mean'].astype(float)
-                df['stddev'] = coverage_data['stddev'].astype(float)
+                df['mean'] = pd.to_numeric(coverage_data['mean'], errors='coerce')
+                df['stddev'] = pd.to_numeric(coverage_data['stddev'], errors='coerce')
                 y_values = df['mean']
                 error_values = df['stddev']
             else:
-                # If the column is not the expected format, plot directly without error bars
+                # For other columns, plot directly without error bars
                 y_values = df[y_axis]
                 error_values = None
 
@@ -146,7 +147,7 @@ def generate_coverage_bar_plot(sheet_name, x_axis, y_axis):
             fig.add_trace(go.Bar(
                 x=df[x_axis],
                 y=y_values,
-                error_y=dict(type='data', array=error_values, visible=bool(error_values)),
+                error_y=dict(type='data', array=error_values, visible=bool(error_values) if error_values is not None else False),
                 name='Coverage with StdDev' if error_values is not None else 'Coverage',
                 marker=dict(color='blue')
             ))
@@ -163,6 +164,7 @@ def generate_coverage_bar_plot(sheet_name, x_axis, y_axis):
         except Exception as e:
             return go.Figure().update_layout(title=f"Error generating plot: {e}")
     return go.Figure().update_layout(title="No data to display")
+
 
 
 # Run the app
