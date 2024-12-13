@@ -56,6 +56,10 @@ app.layout = dbc.Container([
                         id='sheet-dropdown',
                         placeholder="Upload a file to populate",
                     ),
+                    html.Label("Select X-Axis:"),
+                    dcc.Dropdown(id='x-axis-dropdown', className="mt-2"),
+                    html.Label("Select Y-Axis:"),
+                    dcc.Dropdown(id='y-axis-dropdown', className="mt-2"),
                 ])
             ])
         ])
@@ -95,40 +99,61 @@ def handle_file_upload(contents, filename):
             return f"Error uploading file: {e}", []
     return "No file uploaded yet", []
 
-# Callback to generate the coverage bar plot
+# Callback to update X-axis and Y-axis dropdowns
 @app.callback(
-    Output('coverage-bar-plot', 'figure'),
+    Output('x-axis-dropdown', 'options'),
+    Output('y-axis-dropdown', 'options'),
     Input('sheet-dropdown', 'value')
 )
-def generate_coverage_bar_plot(sheet_name):
+def update_axis_dropdowns(sheet_name):
     if sheet_name and uploaded_data:
         try:
             # Load the selected sheet
             df = uploaded_data.parse(sheet_name)
-            
-            # Ensure the selected sheet is "Assembly_Depth"
-            if sheet_name != "Assembly_Depth":
-                return go.Figure().update_layout(title="Select the 'Assembly_Depth' sheet")
-            
-            # Parse the 'Coverage_(mean[x]_+/-_stdev[x])' column
-            coverage_data = df['Coverage_(mean[x]_+/-_stdev[x])'].str.extract(r'(?P<mean>[\d.]+)x_.*(?P<stddev>[\d.]+)x')
-            df['mean'] = coverage_data['mean'].astype(float)
-            df['stddev'] = coverage_data['stddev'].astype(float)
+            options = [{'label': col, 'value': col} for col in df.columns]
+            return options, options
+        except Exception as e:
+            return [], []
+    return [], []
 
-            # Create a bar plot with error bars
+# Callback to generate the coverage bar plot
+@app.callback(
+    Output('coverage-bar-plot', 'figure'),
+    Input('sheet-dropdown', 'value'),
+    Input('x-axis-dropdown', 'value'),
+    Input('y-axis-dropdown', 'value')
+)
+def generate_coverage_bar_plot(sheet_name, x_axis, y_axis):
+    if sheet_name and x_axis and y_axis and uploaded_data:
+        try:
+            # Load the selected sheet
+            df = uploaded_data.parse(sheet_name)
+            
+            # Ensure the y-axis column has coverage data to parse
+            if 'Coverage_(mean' in y_axis:
+                coverage_data = df[y_axis].str.extract(r'(?P<mean>[\d.]+)x_.*(?P<stddev>[\d.]+)x')
+                df['mean'] = coverage_data['mean'].astype(float)
+                df['stddev'] = coverage_data['stddev'].astype(float)
+                y_values = df['mean']
+                error_values = df['stddev']
+            else:
+                y_values = df[y_axis]
+                error_values = None
+
+            # Create a bar plot with or without error bars
             fig = go.Figure()
             fig.add_trace(go.Bar(
-                x=df['Sample_name'],
-                y=df['mean'],
-                error_y=dict(type='data', array=df['stddev'], visible=True),
+                x=df[x_axis],
+                y=y_values,
+                error_y=dict(type='data', array=error_values, visible=bool(error_values)),
                 name='Coverage with StdDev',
                 marker=dict(color='blue')
             ))
 
             fig.update_layout(
                 title="Coverage Bar Plot with Error Bars",
-                xaxis_title="Sample Name",
-                yaxis_title="Coverage (Mean ± StdDev)",
+                xaxis_title=f"{x_axis}",
+                yaxis_title=f"{y_axis} (Mean ± StdDev)" if error_values is not None else y_axis,
                 xaxis=dict(tickangle=-45),
                 plot_bgcolor="white",
                 showlegend=False
