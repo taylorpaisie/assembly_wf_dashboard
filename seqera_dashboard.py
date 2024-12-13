@@ -126,32 +126,41 @@ def update_axis_dropdowns(sheet_name):
 def generate_coverage_bar_plot(sheet_name, x_axis, y_axis):
     if sheet_name and x_axis and y_axis and uploaded_data:
         try:
-            # Load the selected sheet
+            # Load the selected sheet into a DataFrame
             df = uploaded_data.parse(sheet_name)
 
-            # Parse coverage data if the column is the specific coverage column
+            # Handle the case where the Y-axis is the coverage column
             if y_axis == "Coverage_(mean[x]_+/-_stdev[x])":
-                # Extract mean and stddev using regex
+                # Extract mean and standard deviation values using regex
                 coverage_data = df[y_axis].str.extract(r'(?P<mean>[\d.]+)x_.*(?P<stddev>[\d.]+)x')
+
+                # Convert to numeric and handle errors
                 df['mean'] = pd.to_numeric(coverage_data['mean'], errors='coerce')
                 df['stddev'] = pd.to_numeric(coverage_data['stddev'], errors='coerce')
+
+                # Define Y-axis values and error bars
                 y_values = df['mean']
                 error_values = df['stddev']
             else:
-                # For other columns, plot directly without error bars
-                y_values = df[y_axis]
+                # If not the coverage column, use the selected Y-axis column directly
+                y_values = pd.to_numeric(df[y_axis], errors='coerce')
                 error_values = None
 
-            # Create a bar plot with or without error bars
+            # Create a bar plot
             fig = go.Figure()
             fig.add_trace(go.Bar(
                 x=df[x_axis],
                 y=y_values,
-                error_y=dict(type='data', array=error_values, visible=bool(error_values) if error_values is not None else False),
-                name='Coverage with StdDev' if error_values is not None else 'Coverage',
-                marker=dict(color='blue')
+                error_y=dict(
+                    type='data',
+                    array=error_values,
+                    visible=bool(error_values is not None)
+                ),
+                marker=dict(color='blue'),
+                name="Coverage with StdDev" if error_values is not None else "Coverage"
             ))
 
+            # Update layout with appropriate titles
             fig.update_layout(
                 title="Coverage Bar Plot with Error Bars",
                 xaxis_title=f"{x_axis}",
@@ -161,10 +170,13 @@ def generate_coverage_bar_plot(sheet_name, x_axis, y_axis):
                 showlegend=False
             )
             return fig
-        except Exception as e:
-            return go.Figure().update_layout(title=f"Error generating plot: {e}")
-    return go.Figure().update_layout(title="No data to display")
 
+        except Exception as e:
+            # Catch and display any errors
+            return go.Figure().update_layout(title=f"Error generating plot: {e}")
+
+    # Default empty plot if inputs are not valid
+    return go.Figure().update_layout(title="No data to display")
 
 
 # Run the app
