@@ -17,6 +17,7 @@ COPY . .
 
 EXPOSE 8000
 
+COPY Summary-Report.xlsx /app/Summary-Report.xlsx
 RUN chmod 644 /app/Summary-Report.xlsx
 
     
