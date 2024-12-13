@@ -129,14 +129,15 @@ def generate_coverage_bar_plot(sheet_name, x_axis, y_axis):
             # Load the selected sheet
             df = uploaded_data.parse(sheet_name)
             
-            # Ensure the y-axis column has coverage data to parse
-            if 'Coverage_(mean' in y_axis:
+            # Check if the y-axis column matches the "Coverage_(mean[x]_+/-_stdev[x])" pattern
+            if y_axis == "Coverage_(mean[x]_+/-_stdev[x])":
                 coverage_data = df[y_axis].str.extract(r'(?P<mean>[\d.]+)x_.*(?P<stddev>[\d.]+)x')
                 df['mean'] = coverage_data['mean'].astype(float)
                 df['stddev'] = coverage_data['stddev'].astype(float)
                 y_values = df['mean']
                 error_values = df['stddev']
             else:
+                # If the column is not the expected format, plot directly without error bars
                 y_values = df[y_axis]
                 error_values = None
 
@@ -146,7 +147,7 @@ def generate_coverage_bar_plot(sheet_name, x_axis, y_axis):
                 x=df[x_axis],
                 y=y_values,
                 error_y=dict(type='data', array=error_values, visible=bool(error_values)),
-                name='Coverage with StdDev',
+                name='Coverage with StdDev' if error_values is not None else 'Coverage',
                 marker=dict(color='blue')
             ))
 
@@ -162,6 +163,7 @@ def generate_coverage_bar_plot(sheet_name, x_axis, y_axis):
         except Exception as e:
             return go.Figure().update_layout(title=f"Error generating plot: {e}")
     return go.Figure().update_layout(title="No data to display")
+
 
 # Run the app
 if __name__ == "__main__":
