@@ -17,8 +17,8 @@ COPY . .
 
 EXPOSE 8000
 
-COPY Summary-Report.xlsx /app/Summary-Report.xlsx
-RUN chmod 644 /app/Summary-Report.xlsx
+# COPY Summary-Report.xlsx /app/Summary-Report.xlsx
+# RUN chmod 644 /app/Summary-Report.xlsx
 
     
 CMD ["gunicorn", "-b", "0.0.0.0:8000", "seqera_dashboard:server"]
