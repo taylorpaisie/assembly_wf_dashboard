@@ -1,3 +1,1 @@
-web: gunicorn seqera_dashboard:server
-
-
+web: gunicorn -b 0.0.0.0:8000 seqera_dashboard:server
