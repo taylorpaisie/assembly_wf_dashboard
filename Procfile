@@ -1,2 +1,3 @@
-web: gunicorn seqera_dashboard:app
+web: gunicorn seqera_dashboard:server
+
 
