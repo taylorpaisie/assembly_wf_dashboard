@@ -6,7 +6,7 @@ import io
 import plotly.graph_objects as go
 
 # Initialize Dash app with external stylesheets
-app = Dash(__name__, external_stylesheets=[dbc.themes.COSMO])
+app = Dash(__name__, external_stylesheets=[dbc.themes.CYBORG])
 server = app.server  # Expose server for Gunicorn
 
 # Global variable to hold the uploaded data
