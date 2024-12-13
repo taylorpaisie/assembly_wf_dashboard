@@ -146,6 +146,13 @@ def generate_coverage_bar_plot(sheet_name, x_axis, y_axis):
                 y_values = pd.to_numeric(df[y_axis], errors='coerce')
                 error_values = None
 
+            # Create a color mapping for each unique X-axis value
+            unique_x_values = df[x_axis].unique()
+            color_map = {value: color for value, color in zip(unique_x_values, px.colors.qualitative.Plotly)}
+
+            # Assign colors based on X-axis values
+            colors = df[x_axis].map(color_map)
+
             # Create a bar plot
             fig = go.Figure()
             fig.add_trace(go.Bar(
@@ -156,13 +163,13 @@ def generate_coverage_bar_plot(sheet_name, x_axis, y_axis):
                     array=error_values,
                     visible=bool(error_values is not None)
                 ),
-                marker=dict(color='blue'),
+                marker=dict(color=colors),
                 name="Coverage with StdDev" if error_values is not None else "Coverage"
             ))
 
             # Update layout with appropriate titles
             fig.update_layout(
-                title="Coverage Bar Plot with Error Bars",
+                title="Coverage Bar Plot with Error Bars and Colors",
                 xaxis_title=f"{x_axis}",
                 yaxis_title=f"{y_axis} (Mean ± StdDev)" if error_values is not None else y_axis,
                 xaxis=dict(tickangle=-45),
