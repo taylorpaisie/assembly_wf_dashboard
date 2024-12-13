@@ -3,7 +3,7 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 import base64
 import io
-import plotly.express as px
+import plotly.graph_objects as go
 
 # Initialize Dash app with external stylesheets
 app = Dash(__name__, external_stylesheets=[dbc.themes.COSMO])
@@ -15,7 +15,7 @@ uploaded_data = {}
 # Define the layout
 app.layout = dbc.Container([
     dbc.Row([
-        dbc.Col(html.H1("Dynamic Excel Dashboard",
+        dbc.Col(html.H1("Assembly Workflow Dashboard",
                         className="text-center text-primary my-4"), width=12)
     ]),
     dbc.Row([
@@ -56,10 +56,6 @@ app.layout = dbc.Container([
                         id='sheet-dropdown',
                         placeholder="Upload a file to populate",
                     ),
-                    html.Label("Select X-Axis:"),
-                    dcc.Dropdown(id='x-axis-dropdown', className="mt-2"),
-                    html.Label("Select Y-Axis:"),
-                    dcc.Dropdown(id='y-axis-dropdown', className="mt-2"),
                 ])
             ])
         ])
@@ -67,9 +63,9 @@ app.layout = dbc.Container([
     dbc.Row([
         dbc.Col([
             dbc.Card([
-                dbc.CardHeader("Bar Graph"),
+                dbc.CardHeader("Coverage Bar Plot"),
                 dbc.CardBody([
-                    dcc.Graph(id='bar-graph')
+                    dcc.Graph(id='coverage-bar-plot')
                 ])
             ])
         ])
@@ -99,54 +95,48 @@ def handle_file_upload(contents, filename):
             return f"Error uploading file: {e}", []
     return "No file uploaded yet", []
 
-# Callback to update X-axis and Y-axis dropdowns
+# Callback to generate the coverage bar plot
 @app.callback(
-    Output('x-axis-dropdown', 'options'),
-    Output('y-axis-dropdown', 'options'),
+    Output('coverage-bar-plot', 'figure'),
     Input('sheet-dropdown', 'value')
 )
-def update_axis_dropdowns(sheet_name):
+def generate_coverage_bar_plot(sheet_name):
     if sheet_name and uploaded_data:
         try:
             # Load the selected sheet
             df = uploaded_data.parse(sheet_name)
-            options = [{'label': col, 'value': col} for col in df.columns]
-            return options, options
-        except Exception as e:
-            return [], []
-    return [], []
+            
+            # Ensure the selected sheet is "Assembly_Depth"
+            if sheet_name != "Assembly_Depth":
+                return go.Figure().update_layout(title="Select the 'Assembly_Depth' sheet")
+            
+            # Parse the 'Coverage_(mean[x]_+/-_stdev[x])' column
+            coverage_data = df['Coverage_(mean[x]_+/-_stdev[x])'].str.extract(r'(?P<mean>[\d.]+)x_.*(?P<stddev>[\d.]+)x')
+            df['mean'] = coverage_data['mean'].astype(float)
+            df['stddev'] = coverage_data['stddev'].astype(float)
 
-# Callback to generate bar graph with distinct colors for X-axis variables
-@app.callback(
-    Output('bar-graph', 'figure'),
-    Input('sheet-dropdown', 'value'),
-    Input('x-axis-dropdown', 'value'),
-    Input('y-axis-dropdown', 'value')
-)
-def update_bar_graph(sheet_name, x_axis, y_axis):
-    if sheet_name and x_axis and y_axis and uploaded_data:
-        try:
-            # Load the selected sheet and plot the data
-            df = uploaded_data.parse(sheet_name)
-            fig = px.bar(
-                df,
-                x=x_axis,
-                y=y_axis,
-                color=x_axis,  # Use X-axis values to determine colors
-                title=f"Bar Graph of {x_axis} vs {y_axis}",
-                color_discrete_sequence=px.colors.qualitative.Plotly  # Built-in color scheme
-            )
-            # Additional styling
+            # Create a bar plot with error bars
+            fig = go.Figure()
+            fig.add_trace(go.Bar(
+                x=df['Sample_name'],
+                y=df['mean'],
+                error_y=dict(type='data', array=df['stddev'], visible=True),
+                name='Coverage with StdDev',
+                marker=dict(color='blue')
+            ))
+
             fig.update_layout(
-                title_font=dict(size=20, family='Arial', color='blue'),
-                xaxis_title=f"X-axis: {x_axis}",
-                yaxis_title=f"Y-axis: {y_axis}",
-                plot_bgcolor="white"  # Background color
+                title="Coverage Bar Plot with Error Bars",
+                xaxis_title="Sample Name",
+                yaxis_title="Coverage (Mean ± StdDev)",
+                xaxis=dict(tickangle=-45),
+                plot_bgcolor="white",
+                showlegend=False
             )
             return fig
         except Exception as e:
-            return px.bar(title="Error generating graph")
-    return px.bar(title="No data to display")
+            return go.Figure().update_layout(title=f"Error generating plot: {e}")
+    return go.Figure().update_layout(title="No data to display")
 
 # Run the app
 if __name__ == "__main__":
