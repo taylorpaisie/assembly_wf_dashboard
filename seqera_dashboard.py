@@ -112,7 +112,6 @@ app.layout = dbc.Container([
 
 
 
-
 # Callback to handle file upload
 @app.callback(
     Output('upload-status', 'children'),
