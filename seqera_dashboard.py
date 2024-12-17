@@ -1,9 +1,10 @@
-from dash import Dash, html, dcc, Input, Output, State, ctx
+from dash import Dash, html, dcc, Input, Output, State
 import dash_bootstrap_components as dbc
 import pandas as pd
 import base64
 import io
 import plotly.graph_objects as go
+from dash.dash_table import DataTable
 
 # Initialize Dash app with external stylesheets
 app = Dash(__name__, external_stylesheets=[dbc.themes.CYBORG, dbc.icons.BOOTSTRAP])
@@ -86,12 +87,21 @@ app.layout = dbc.Container([
                 dbc.CardBody([
                     dcc.Graph(id='coverage-bar-plot', style={'height': '500px'}),
                 ])
+            ], className="shadow-sm mb-4"),
+            dbc.Card([
+                dbc.CardHeader(html.H5("Spreadsheet Data", className="text-white")),
+                dbc.CardBody([
+                    dcc.Loading(
+                        children=[
+                            html.Div(id="data-table-container")
+                        ],
+                        type="default"
+                    )
+                ])
             ], className="shadow-sm mb-4")
         ], width=10, className="offset-1")
     ])
 ], fluid=True, style={"backgroundColor": "#1e1e1e", "paddingBottom": "20px"})
-
-# Callbacks remain the same as your provided script
 
 # Callback to handle file upload
 @app.callback(
@@ -106,14 +116,19 @@ def handle_file_upload(contents, filename):
         try:
             content_type, content_string = contents.split(',')
             decoded = io.BytesIO(base64.b64decode(content_string))
+            
             uploaded_data = pd.ExcelFile(decoded)
             sheets = uploaded_data.sheet_names
+            if not sheets:
+                raise ValueError("No sheets found in the uploaded Excel file.")
+            
             return f"Uploaded: {filename}", [{'label': sheet, 'value': sheet} for sheet in sheets]
         except Exception as e:
+            print(f"Error: {e}")  # Debugging
             return f"Error uploading file: {e}", []
     return "No file uploaded yet", []
 
-# Callback to update dropdowns
+# Callback to update X-axis and Y-axis dropdowns
 @app.callback(
     Output('x-axis-dropdown', 'options'),
     Output('y-axis-dropdown', 'options'),
@@ -142,56 +157,92 @@ def generate_coverage_bar_plot(sheet_name, x_axis, y_axis):
             # Load the selected sheet into a DataFrame
             df = uploaded_data.parse(sheet_name)
 
-            # Handle case where Y-axis is a coverage column
-            if y_axis == "Coverage_(mean[x]_+/-_stdev[x])":
+            # Handle special "Coverage_(mean[x]_+/-_stdev[x])" column
+            if "Coverage" in y_axis and "mean" in y_axis:
+                # Extract mean and stddev using regex
                 coverage_data = df[y_axis].str.extract(r'(?P<mean>[\d.]+)x_.*(?P<stddev>[\d.]+)x')
+                
+                # Convert extracted data to numeric
                 df['mean'] = pd.to_numeric(coverage_data['mean'], errors='coerce')
                 df['stddev'] = pd.to_numeric(coverage_data['stddev'], errors='coerce')
+
+                # Filter out rows where mean is NaN
+                df = df.dropna(subset=['mean'])
+
+                x_values = df[x_axis]
                 y_values = df['mean']
                 error_values = df['stddev']
             else:
+                # Standard column plotting without error bars
+                df = df.dropna(subset=[x_axis, y_axis])
+                x_values = df[x_axis]
                 y_values = pd.to_numeric(df[y_axis], errors='coerce')
                 error_values = None
 
-            # Dynamic color mapping
+            # Dynamic color mapping for unique X-axis values
             from plotly.colors import qualitative
-            unique_x_values = df[x_axis].unique()
-            color_palette = qualitative.Vivid  # Use the Plotly qualitative palette
+            unique_x_values = x_values.unique()
+            color_palette = qualitative.Vivid
             color_map = {value: color for value, color in zip(unique_x_values, color_palette)}
-            colors = df[x_axis].map(color_map)
+            colors = x_values.map(color_map)
 
-            # Create the bar plot
+            # Build the bar plot
             fig = go.Figure()
             fig.add_trace(go.Bar(
-                x=df[x_axis],
+                x=x_values,
                 y=y_values,
-                marker=dict(color=colors),
                 error_y=dict(
                     type='data',
                     array=error_values,
-                    visible=bool(error_values is not None)
+                    visible=error_values is not None
                 ),
-                name="Coverage with StdDev" if error_values is not None else "Coverage"
+                marker=dict(color=colors),
             ))
 
             # Update layout
             fig.update_layout(
-                title="Coverage Bar Plot with Dynamic Colors",
-                xaxis_title=f"{x_axis}",
-                yaxis_title=f"{y_axis} (Mean ± StdDev)" if error_values is not None else y_axis,
+                title="Coverage Bar Plot with Error Bars" if error_values is not None else "Coverage Bar Plot",
+                xaxis_title=x_axis,
+                yaxis_title="Coverage (Mean ± StdDev)" if error_values is not None else y_axis,
                 xaxis=dict(tickangle=-45),
                 plot_bgcolor='#2c2f34',
                 paper_bgcolor='#1e1e1e',
-                font_color="white",
-                showlegend=False
+                font_color="white"
             )
             return fig
 
         except Exception as e:
+            print(f"Error: {e}")  # Debugging
             return go.Figure().update_layout(title=f"Error: {e}")
 
     return go.Figure().update_layout(title="No Data to Display")
 
+
+
+# Callback to display spreadsheet data
+@app.callback(
+    Output('data-table-container', 'children'),
+    Input('sheet-dropdown', 'value'),
+    Input('x-axis-dropdown', 'value'),
+    Input('y-axis-dropdown', 'value')
+)
+def display_data_table(sheet_name, x_axis, y_axis):
+    if sheet_name and x_axis and y_axis and uploaded_data:
+        try:
+            df = uploaded_data.parse(sheet_name)
+            filtered_df = df[[x_axis, y_axis]].dropna()
+            table = DataTable(
+                data=filtered_df.to_dict('records'),
+                columns=[{"name": i, "id": i} for i in filtered_df.columns],
+                style_table={'overflowX': 'auto', 'backgroundColor': '#2c2f34'},
+                style_header={'fontWeight': 'bold', 'color': 'white', 'backgroundColor': '#1e1e1e'},
+                style_data={'color': 'white', 'backgroundColor': '#2c2f34'},
+                page_size=10,
+            )
+            return table
+        except Exception as e:
+            return html.Div(f"Error displaying data: {e}", className="text-danger")
+    return html.Div("No data to display", className="text-muted")
 
 # Run the app
 if __name__ == "__main__":
