@@ -87,7 +87,10 @@ app.layout = dbc.Container([
                 dbc.CardBody([
                     dcc.Graph(id='coverage-bar-plot', style={'height': '500px'}),
                 ])
-            ], className="shadow-sm mb-4"),
+            ], className="shadow-sm mb-4")
+        ], width=6),  # Left column
+
+        dbc.Col([
             dbc.Card([
                 dbc.CardHeader(html.H5("Spreadsheet Data", className="text-white")),
                 dbc.CardBody([
@@ -99,9 +102,10 @@ app.layout = dbc.Container([
                     )
                 ])
             ], className="shadow-sm mb-4")
-        ], width=10, className="offset-1")
+        ], width=6)  # Right column
     ])
 ], fluid=True, style={"backgroundColor": "#1e1e1e", "paddingBottom": "20px"})
+
 
 # Callback to handle file upload
 @app.callback(
