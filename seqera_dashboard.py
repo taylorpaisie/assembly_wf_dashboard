@@ -30,6 +30,7 @@ navbar = dbc.NavbarSimple(
 app.layout = dbc.Container([
     navbar,
     dbc.Row([
+        # Row with file upload on the left and dropdown menus on the right
         dbc.Col([
             dbc.Card([
                 dbc.CardHeader(html.H5("Upload Excel File", className="text-white")),
@@ -57,9 +58,8 @@ app.layout = dbc.Container([
                     html.Div(id='upload-status', className='mt-2 text-success'),
                 ])
             ], className="shadow-sm mb-4")
-        ], width=6, className="offset-3")
-    ]),
-    dbc.Row([
+        ], width=6),
+
         dbc.Col([
             dbc.Card([
                 dbc.CardHeader(html.H5("Select Data", className="text-white")),
@@ -78,18 +78,12 @@ app.layout = dbc.Container([
                     ]),
                 ])
             ], className="shadow-sm mb-4")
-        ], width=8, className="offset-2")
+        ], width=6)
     ]),
-    dbc.Row([
-        dbc.Col([
-            dbc.Card([
-                dbc.CardHeader(html.H5("Coverage Bar Plot", className="text-white")),
-                dbc.CardBody([
-                    dcc.Graph(id='coverage-bar-plot', style={'height': '500px'}),
-                ])
-            ], className="shadow-sm mb-4")
-        ], width=6),  # Left column
 
+    # Row for spreadsheet data on the left and plot on the right
+    dbc.Row([
+        # Left Column: Data table
         dbc.Col([
             dbc.Card([
                 dbc.CardHeader(html.H5("Spreadsheet Data", className="text-white")),
@@ -102,9 +96,21 @@ app.layout = dbc.Container([
                     )
                 ])
             ], className="shadow-sm mb-4")
-        ], width=6)  # Right column
+        ], width=6),
+
+        # Right Column: Coverage bar plot
+        dbc.Col([
+            dbc.Card([
+                dbc.CardHeader(html.H5("Coverage Bar Plot", className="text-white")),
+                dbc.CardBody([
+                    dcc.Graph(id='coverage-bar-plot', style={'height': '500px'}),
+                ])
+            ], className="shadow-sm mb-4")
+        ], width=6)
     ])
 ], fluid=True, style={"backgroundColor": "#1e1e1e", "paddingBottom": "20px"})
+
+
 
 
 # Callback to handle file upload
