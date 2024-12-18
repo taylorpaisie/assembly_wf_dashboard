@@ -1,2 +1,2 @@
-web: gunicorn -b 0.0.0.0:$PORT seqera_dashboard:server
+web: gunicorn -b 0.0.0.0:$PORT app:server
 
