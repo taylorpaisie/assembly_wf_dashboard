@@ -5,7 +5,6 @@ import base64
 import io
 import plotly.graph_objects as go
 from dash.dash_table import DataTable
-from kraken_plot import parse_kraken_report, generate_sankey
 
 
 # Initialize Dash app with external stylesheets
