@@ -191,40 +191,44 @@ def register_callbacks(app, uploaded_data):
             try:
                 excel_data = uploaded_data['data']
                 df = excel_data.parse(sheet_name)
+
+                # Filter data for the selected sample
                 df = df[df['Sample_name'] == selected_sample]
                 print(f"Filtered data: {len(df)} rows")
 
-                # Dynamically generate nodes and links for Sankey plot
+                # Dynamically generate nodes and links
                 nodes = []
                 links = {"source": [], "target": [], "value": []}
                 node_map = {}
 
-                # Helper function to get node index
                 def get_node_index(name):
                     if name not in node_map:
                         node_map[name] = len(nodes)
                         nodes.append(name)
                     return node_map[name]
 
-                # Iterate through DataFrame rows to build nodes and links
+                # Build nodes and links based on hierarchical columns
+                hierarchy = ['Genus', 'Species']
                 for _, row in df.iterrows():
                     parent_index = get_node_index(selected_sample)
-                    for level in ['Genus', 'Species']:
+                    for level in hierarchy:
                         if pd.notna(row.get(level)):
                             current_index = get_node_index(row[level])
                             links["source"].append(parent_index)
                             links["target"].append(current_index)
-                            links["value"].append(row.get('Reads_(%)', 1))  # Default value if missing
+                            links["value"].append(row.get('Reads_(%)', 1))
                             parent_index = current_index
 
                 print(f"Nodes: {nodes}")
                 print(f"Links: {links}")
 
-                # Generate Sankey plot
                 return generate_sankey_plot(nodes, links)
+
             except Exception as e:
                 print(f"Error generating Sankey plot: {e}")
                 return go.Figure().update_layout(title=f"Error: {e}")
+
         return go.Figure().update_layout(title="No Data to Display")
+
 
 

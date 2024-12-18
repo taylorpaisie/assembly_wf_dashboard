@@ -20,9 +20,41 @@ def generate_bar_plot(x, y, error_y=None):
 
 # Function to create a Sankey plot
 def generate_sankey_plot(nodes, links):
-    fig = go.Figure(data=[go.Sankey(
-        node=dict(pad=15, thickness=20, line=dict(color="black", width=0.5), label=nodes),
-        link=dict(source=links["source"], target=links["target"], value=links["value"])
-    )])
-    fig.update_layout(title_text="Taxonomic Classification Sankey", font_size=10)
-    return fig
+    """
+    Generates a Sankey plot using nodes and links.
+    Args:
+        nodes (list): List of node names (taxonomic levels).
+        links (dict): Dictionary containing 'source', 'target', and 'value' lists.
+    Returns:
+        Plotly figure object.
+    """
+    try:
+        fig = go.Figure(data=[go.Sankey(
+            node=dict(
+                pad=15,
+                thickness=20,
+                line=dict(color="black", width=0.5),
+                label=nodes
+            ),
+            link=dict(
+                source=links["source"],
+                target=links["target"],
+                value=links["value"]
+            )
+        )])
+
+        # Update layout
+        fig.update_layout(
+            title_text="Taxonomic Classification Sankey",
+            font_size=10
+        )
+        return fig
+
+    except KeyError as e:
+        print(f"KeyError in generate_sankey_plot: {e}")
+        return go.Figure().update_layout(title=f"Error: Missing key {e}")
+    except Exception as e:
+        print(f"Error in generate_sankey_plot: {e}")
+        return go.Figure().update_layout(title=f"Error: {e}")
+
+
