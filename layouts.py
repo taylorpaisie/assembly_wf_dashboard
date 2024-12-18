@@ -49,6 +49,7 @@ def get_file_upload():
 def get_data_display():
     return dbc.Row(
         [
+            # Column for displaying spreadsheet data
             dbc.Col(
                 dbc.Card(
                     [
@@ -70,11 +71,12 @@ def get_data_display():
                 width=6
             ),
 
+            # Column for Assembly_Depth bar plot
             dbc.Col(
                 dbc.Card(
                     [
                         dbc.CardHeader(
-                            html.H5("Bar Plot Controls", className="text-white"),
+                            html.H5("Assembly Depth Bar Plot", className="text-white"),
                             className="bg-secondary"
                         ),
                         dbc.CardBody(
@@ -107,8 +109,52 @@ def get_data_display():
                 ),
                 width=6
             ),
+
+            # Column for Kraken bar plot with sample dropdown
+            dbc.Col(
+                dbc.Card(
+                    [
+                        dbc.CardHeader(
+                            html.H5("Kraken Bar Plot by Sample", className="text-white"),
+                            className="bg-secondary"
+                        ),
+                        dbc.CardBody(
+                            [
+                                html.Div(
+                                    [
+                                        html.Label("Select a Sheet:", className="fw-bold"),
+                                        dcc.Dropdown(
+                                            id='kraken-sheet-dropdown',
+                                            placeholder="Select a sheet"
+                                        ),
+                                    ],
+                                    className="mb-3"
+                                ),
+                                html.Div(
+                                    [
+                                        html.Label("Select a Sample:", className="fw-bold"),
+                                        dcc.Dropdown(
+                                            id='kraken-sample-dropdown',
+                                            placeholder="Select a sample"
+                                        ),
+                                    ],
+                                    className="mb-3"
+                                ),
+                                dcc.Graph(id='kraken-bar-plot', style={'height': '500px'}),
+                            ]
+                        ),
+                    ],
+                    className="shadow-sm mb-4"
+                ),
+                width=6
+            ),
         ]
     )
+
+
+
+
+
 
 # Sankey plot section
 def get_sankey_section():
@@ -168,6 +214,22 @@ def get_sankey_section():
             ),
         ]
     )
+
+# abundance bar plot
+def get_kraken_bar_plot():
+    return dbc.Card(
+        [
+            dbc.CardHeader(
+                html.H5("Kraken Bar Plot", className="text-white"),
+                className="bg-secondary"
+            ),
+            dbc.CardBody(
+                dcc.Graph(id='kraken-bar-plot', style={'height': '500px'}),
+            ),
+        ],
+        className="shadow-sm mb-4"
+    )
+
 
 # Main layout combining all sections
 def create_layout():

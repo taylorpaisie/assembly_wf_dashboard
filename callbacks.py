@@ -14,6 +14,7 @@ def register_callbacks(app, uploaded_data):
             Output('upload-status', 'children'),
             Output('sankey-sheet-dropdown', 'options'),
             Output('sheet-dropdown', 'options'),
+            Output('kraken-sheet-dropdown', 'options')  # Add this for Kraken dropdown
         ],
         Input('upload-data', 'contents'),
         State('upload-data', 'filename'),
@@ -21,7 +22,6 @@ def register_callbacks(app, uploaded_data):
     def handle_file_upload(contents, filename):
         if contents is not None:
             try:
-                print(f"Processing file: {filename}")
                 content_type, content_string = contents.split(',')
                 decoded = io.BytesIO(base64.b64decode(content_string))
 
@@ -31,15 +31,16 @@ def register_callbacks(app, uploaded_data):
                 sheets = excel_data.sheet_names
 
                 if not sheets:
-                    return "No sheets found in the uploaded file.", [], []
+                    return "No sheets found in the uploaded file.", [], [], []
 
                 # Generate options for dropdowns
                 sheet_options = [{'label': sheet, 'value': sheet} for sheet in sheets]
-                return f"Uploaded: {filename}", sheet_options, sheet_options
+                return f"Uploaded: {filename}", sheet_options, sheet_options, sheet_options
             except Exception as e:
                 print(f"Error processing file: {e}")
-                return f"Error uploading file: {e}", [], []
-        return "No file uploaded yet", [], []
+                return f"Error uploading file: {e}", [], [], []
+        return "No file uploaded yet", [], [], []
+
 
     @app.callback(
         [Output('x-axis-dropdown', 'options'), Output('y-axis-dropdown', 'options')],
@@ -229,6 +230,89 @@ def register_callbacks(app, uploaded_data):
                 return go.Figure().update_layout(title=f"Error: {e}")
 
         return go.Figure().update_layout(title="No Data to Display")
+    
+
+    @app.callback(
+        Output('kraken-sample-dropdown', 'options'),
+        Input('kraken-sheet-dropdown', 'value')
+    )
+    def update_sample_dropdown(sheet_name):
+        if sheet_name and 'data' in uploaded_data:
+            try:
+                df = uploaded_data['data'].parse(sheet_name)
+                if 'Sample_name' in df.columns:
+                    unique_samples = df['Sample_name'].dropna().unique()
+                    return [{'label': sample, 'value': sample} for sample in unique_samples]
+                else:
+                    return []
+            except Exception as e:
+                print(f"Error loading samples for sheet {sheet_name}: {e}")
+                return []
+        return []
+
+
+    @app.callback(
+        Output('kraken-bar-plot', 'figure'),
+        Input('kraken-sheet-dropdown', 'value')
+    )
+    def generate_kraken_stacked_bar_plot(sheet_name):
+        if sheet_name and 'data' in uploaded_data:
+            try:
+                # Load the selected sheet
+                df = uploaded_data['data'].parse(sheet_name)
+
+                # Normalize column names
+                df.columns = df.columns.str.strip()
+
+                # Validate required columns
+                if 'Sample_name' not in df.columns or 'Reads_(%)' not in df.columns or 'Species.2' not in df.columns:
+                    raise KeyError("'Sample_name', 'Reads_(%)', or 'Species.2' column not found in the DataFrame")
+
+                # Group data by sample and category
+                grouped_df = (
+                    df.groupby(['Sample_name', 'Species.2'])['Reads_(%)']
+                    .sum()
+                    .reset_index()
+                )
+
+                # Pivot for stacking
+                pivot_df = grouped_df.pivot(index='Sample_name', columns='Species.2', values='Reads_(%)').fillna(0)
+
+                # Create stacked bar plot
+                fig = go.Figure()
+                for category in pivot_df.columns:
+                    fig.add_trace(go.Bar(
+                        name=category,
+                        x=pivot_df.index,
+                        y=pivot_df[category]
+                    ))
+
+                # Customize the layout
+                fig.update_layout(
+                    barmode='stack',  # Stacked bar mode
+                    title=f"Kraken Stacked Bar Plot for {sheet_name}",
+                    xaxis_title="Sample",
+                    yaxis_title="Percentage of Reads (%)",
+                    plot_bgcolor='#2c2f34',
+                    paper_bgcolor='#1e1e1e',
+                    font_color="white",
+                    legend_title="Category"
+                )
+                return fig
+
+            except Exception as e:
+                print(f"Error generating Kraken stacked bar plot: {e}")
+                return go.Figure().update_layout(title=f"Error: {e}")
+
+        return go.Figure().update_layout(title="No Data to Display")
+
+
+
+
+
+
+
+
 
 
 
