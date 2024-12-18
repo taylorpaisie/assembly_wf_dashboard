@@ -52,15 +52,12 @@ def register_callbacks(app, uploaded_data):
 
                 # Extract numeric columns for Y-axis and all columns for X-axis
                 all_cols = df.columns.tolist()
-
-                # Identify numeric columns and columns with extractable numeric patterns
                 numeric_cols = df.select_dtypes(include='number').columns.tolist()
                 pattern_based_cols = [
                     col for col in df.columns
                     if df[col].astype(str).str.contains(r'^[\d.]+x_.*[\d.]+x$', na=False).any()
                 ]
 
-                # Combine numeric and pattern-based columns
                 combined_y_cols = numeric_cols + pattern_based_cols
 
                 return (
@@ -72,7 +69,6 @@ def register_callbacks(app, uploaded_data):
                 return [], []
         return [], []
 
-
     @app.callback(
         Output('coverage-bar-plot', 'figure'),
         Input('sheet-dropdown', 'value'),
@@ -82,38 +78,28 @@ def register_callbacks(app, uploaded_data):
     def generate_coverage_bar_plot(sheet_name, x_axis, y_axis):
         if sheet_name and x_axis and y_axis and 'data' in uploaded_data:
             try:
-                # Load the selected sheet into a DataFrame
                 df = uploaded_data['data'].parse(sheet_name)
 
-                # Handle special "Coverage_(mean[x]_+/-_stdev[x])" column
                 if "Coverage" in y_axis and "mean" in y_axis:
-                    # Extract mean and stddev using regex
                     coverage_data = df[y_axis].str.extract(r'(?P<mean>[\d.]+)x_.*(?P<stddev>[\d.]+)x')
-
-                    # Convert extracted data to numeric
                     df['mean'] = pd.to_numeric(coverage_data['mean'], errors='coerce')
                     df['stddev'] = pd.to_numeric(coverage_data['stddev'], errors='coerce')
-
-                    # Filter out rows where mean is NaN
                     df = df.dropna(subset=['mean'])
 
                     x_values = df[x_axis]
                     y_values = df['mean']
                     error_values = df['stddev']
                 else:
-                    # Standard column plotting without error bars
                     df = df.dropna(subset=[x_axis, y_axis])
                     x_values = df[x_axis]
                     y_values = pd.to_numeric(df[y_axis], errors='coerce')
                     error_values = None
 
-                # Dynamic color mapping for unique X-axis values
                 unique_x_values = x_values.unique()
                 color_palette = qualitative.Vivid
                 color_map = {value: color for value, color in zip(unique_x_values, color_palette)}
                 colors = x_values.map(color_map)
 
-                # Build the bar plot
                 fig = go.Figure()
                 fig.add_trace(go.Bar(
                     x=x_values,
@@ -126,7 +112,6 @@ def register_callbacks(app, uploaded_data):
                     marker=dict(color=colors),
                 ))
 
-                # Update layout
                 fig.update_layout(
                     title="Coverage Bar Plot with Error Bars" if error_values is not None else "Coverage Bar Plot",
                     xaxis_title=x_axis,
@@ -167,3 +152,79 @@ def register_callbacks(app, uploaded_data):
             except Exception as e:
                 return html.Div(f"Error displaying data: {e}", className="text-danger")
         return html.Div("No data to display", className="text-muted")
+
+    @app.callback(
+        Output('sample-dropdown', 'options'),
+        Input('sankey-sheet-dropdown', 'value')
+    )
+    def populate_sample_dropdown(sheet_name):
+        print("populate_sample_dropdown triggered")
+        if sheet_name and 'data' in uploaded_data:
+            try:
+                excel_data = uploaded_data['data']
+                df = excel_data.parse(sheet_name)
+                print(f"Loaded sheet: {sheet_name}, Rows: {len(df)}, Columns: {list(df.columns)}")
+
+                # Normalize column names
+                df.columns = df.columns.str.strip()
+
+                if 'Sample_name' not in df.columns:
+                    print(f"'Sample_name' not found in sheet {sheet_name}. Available columns: {df.columns}")
+                    return []
+
+                sample_names = df['Sample_name'].dropna().unique()
+                print(f"Sample names found: {sample_names}")
+                return [{'label': name, 'value': name} for name in sample_names]
+            except Exception as e:
+                print(f"Error loading samples: {e}")
+                return []
+        return []
+
+    @app.callback(
+        Output('sankey-plot', 'figure'),
+        Input('sankey-sheet-dropdown', 'value'),
+        Input('sample-dropdown', 'value')
+    )
+    def generate_sankey_plot_callback(sheet_name, selected_sample):
+        print("generate_sankey_plot_callback triggered")
+        if sheet_name and selected_sample and 'data' in uploaded_data:
+            try:
+                excel_data = uploaded_data['data']
+                df = excel_data.parse(sheet_name)
+                df = df[df['Sample_name'] == selected_sample]
+                print(f"Filtered data: {len(df)} rows")
+
+                # Dynamically generate nodes and links for Sankey plot
+                nodes = []
+                links = {"source": [], "target": [], "value": []}
+                node_map = {}
+
+                # Helper function to get node index
+                def get_node_index(name):
+                    if name not in node_map:
+                        node_map[name] = len(nodes)
+                        nodes.append(name)
+                    return node_map[name]
+
+                # Iterate through DataFrame rows to build nodes and links
+                for _, row in df.iterrows():
+                    parent_index = get_node_index(selected_sample)
+                    for level in ['Genus', 'Species']:
+                        if pd.notna(row.get(level)):
+                            current_index = get_node_index(row[level])
+                            links["source"].append(parent_index)
+                            links["target"].append(current_index)
+                            links["value"].append(row.get('Reads_(%)', 1))  # Default value if missing
+                            parent_index = current_index
+
+                print(f"Nodes: {nodes}")
+                print(f"Links: {links}")
+
+                # Generate Sankey plot
+                return generate_sankey_plot(nodes, links)
+            except Exception as e:
+                print(f"Error generating Sankey plot: {e}")
+                return go.Figure().update_layout(title=f"Error: {e}")
+        return go.Figure().update_layout(title="No Data to Display")
+
+
