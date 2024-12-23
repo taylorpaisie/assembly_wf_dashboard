@@ -217,18 +217,69 @@ def get_sankey_section():
 
 # abundance bar plot
 def get_kraken_bar_plot():
-    return dbc.Card(
+    return dbc.Container(
         [
-            dbc.CardHeader(
-                html.H5("Kraken Bar Plot", className="text-white"),
-                className="bg-secondary"
-            ),
-            dbc.CardBody(
-                dcc.Graph(id='kraken-bar-plot', style={'height': '500px'}),
+            dbc.Row(
+                [
+                    # Dropdown menu on the left
+                    dbc.Col(
+                        [
+                            dbc.Card(
+                                [
+                                    dbc.CardHeader(
+                                        html.H5("Controls", className="text-white"),
+                                        className="bg-secondary"
+                                    ),
+                                    dbc.CardBody(
+                                        [
+                                            html.Label("Select a Sheet:", className="fw-bold"),
+                                            dcc.Dropdown(
+                                                id='unique-kraken-sheet-dropdown',  # Updated ID
+                                                placeholder="Select a sheet"
+                                            ),
+                                            html.Br(),
+                                            html.Label("Select a Sample:", className="fw-bold"),
+                                            dcc.Dropdown(
+                                                id='unique-kraken-sample-dropdown',  # Updated ID
+                                                placeholder="Select a sample"
+                                            ),
+                                        ]
+                                    ),
+                                ],
+                                className="shadow-sm mb-4"
+                            )
+                        ],
+                        width=3,  # Set the width for the dropdown column
+                    ),
+
+                    # Spacer Column to move the plot further right
+                    dbc.Col([], width=1),
+
+                    # Plot on the right
+                    dbc.Col(
+                        [
+                            dbc.Card(
+                                [
+                                    dbc.CardHeader(
+                                        html.H5("Kraken Bar Plot by Sample", className="text-white"),
+                                        className="bg-secondary"
+                                    ),
+                                    dbc.CardBody(
+                                        dcc.Graph(id='unique-kraken-bar-plot', style={'height': '500px'}),  # Updated ID
+                                    ),
+                                ],
+                                className="shadow-sm mb-4"
+                            )
+                        ],
+                        width=8,  # Set the width for the plot column
+                    ),
+                ],
+                align="start",  # Align at the start of the row
             ),
         ],
-        className="shadow-sm mb-4"
+        fluid=True,  # Allow full-width layout
     )
+
 
 
 # Main layout combining all sections

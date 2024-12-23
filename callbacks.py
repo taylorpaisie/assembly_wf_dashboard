@@ -308,11 +308,3 @@ def register_callbacks(app, uploaded_data):
 
 
 
-
-
-
-
-
-
-
-
