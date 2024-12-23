@@ -47,114 +47,102 @@ def get_file_upload():
 
 # Data display section with bar plot
 def get_data_display():
-    return dbc.Row(
+    return dbc.Container(
         [
-            # Column for displaying spreadsheet data
-            dbc.Col(
-                dbc.Card(
-                    [
-                        dbc.CardHeader(
-                            html.H5("Spreadsheet Data", className="text-white"),
-                            className="bg-secondary"
-                        ),
-                        dbc.CardBody(
-                            [
-                                dcc.Loading(
-                                    children=[html.Div(id="data-table-container")],
-                                    type="default"
-                                )
-                            ]
-                        ),
-                    ],
-                    className="shadow-sm mb-4"
-                ),
-                width=6
+            # Row for Assembly_Depth bar plot
+            dbc.Row(
+                dbc.Col(
+                    dbc.Card(
+                        [
+                            dbc.CardHeader(
+                                html.H5("Assembly Depth Bar Plot", className="text-white"),
+                                className="bg-secondary"
+                            ),
+                            dbc.CardBody(
+                                [
+                                    html.Div(
+                                        [
+                                            html.Label("Select X-Axis:", className="fw-bold"),
+                                            dcc.Dropdown(
+                                                id='x-axis-dropdown',
+                                                placeholder="Select column for X-axis"
+                                            ),
+                                        ],
+                                        className="mb-3"
+                                    ),
+                                    html.Div(
+                                        [
+                                            html.Label("Select Y-Axis:", className="fw-bold"),
+                                            dcc.Dropdown(
+                                                id='y-axis-dropdown',
+                                                placeholder="Select column for Y-axis"
+                                            ),
+                                        ],
+                                        className="mb-3"
+                                    ),
+                                    dcc.Graph(id='coverage-bar-plot', style={'height': '500px'}),
+                                ]
+                            ),
+                        ],
+                        className="shadow-sm mb-4"
+                    ),
+                    width=12  # Full width for clarity
+                )
             ),
-
-            # Column for Assembly_Depth bar plot
-            dbc.Col(
-                dbc.Card(
-                    [
-                        dbc.CardHeader(
-                            html.H5("Assembly Depth Bar Plot", className="text-white"),
-                            className="bg-secondary"
-                        ),
-                        dbc.CardBody(
-                            [
-                                html.Div(
-                                    [
-                                        html.Label("Select X-Axis:", className="fw-bold"),
-                                        dcc.Dropdown(
-                                            id='x-axis-dropdown',
-                                            placeholder="Select column for X-axis"
-                                        ),
-                                    ],
-                                    className="mb-3"
-                                ),
-                                html.Div(
-                                    [
-                                        html.Label("Select Y-Axis:", className="fw-bold"),
-                                        dcc.Dropdown(
-                                            id='y-axis-dropdown',
-                                            placeholder="Select column for Y-axis"
-                                        ),
-                                    ],
-                                    className="mb-3"
-                                ),
-                                dcc.Graph(id='coverage-bar-plot', style={'height': '500px'}),
-                            ]
-                        ),
-                    ],
-                    className="shadow-sm mb-4"
-                ),
-                width=6
+            
+            # Row for Kraken bar plot with sample dropdown
+            dbc.Row(
+                dbc.Col(
+                    dbc.Card(
+                        [
+                            dbc.CardHeader(
+                                html.H5("Kraken Bar Plot by Sample", className="text-white"),
+                                className="bg-secondary"
+                            ),
+                            dbc.CardBody(
+                                [
+                                    html.Div(
+                                        [
+                                            html.Label("Select a Sheet:", className="fw-bold"),
+                                            dcc.Dropdown(
+                                                id='kraken-sheet-dropdown',
+                                                placeholder="Select a sheet"
+                                            ),
+                                        ],
+                                        className="mb-3"
+                                    ),
+                                    html.Div(
+                                        [
+                                            html.Label("Select a Sample:", className="fw-bold"),
+                                            dcc.Dropdown(
+                                                id='kraken-sample-dropdown',
+                                                placeholder="Select a sample"
+                                            ),
+                                        ],
+                                        className="mb-3"
+                                    ),
+                                    dcc.Graph(id='kraken-bar-plot', style={'height': '500px'}),
+                                ]
+                            ),
+                        ],
+                        className="shadow-sm mb-4"
+                    ),
+                    width=12  # Full width for clarity
+                )
             ),
-
-            # Column for Kraken bar plot with sample dropdown
-            dbc.Col(
-                dbc.Card(
-                    [
-                        dbc.CardHeader(
-                            html.H5("Kraken Bar Plot by Sample", className="text-white"),
-                            className="bg-secondary"
-                        ),
-                        dbc.CardBody(
-                            [
-                                html.Div(
-                                    [
-                                        html.Label("Select a Sheet:", className="fw-bold"),
-                                        dcc.Dropdown(
-                                            id='kraken-sheet-dropdown',
-                                            placeholder="Select a sheet"
-                                        ),
-                                    ],
-                                    className="mb-3"
-                                ),
-                                html.Div(
-                                    [
-                                        html.Label("Select a Sample:", className="fw-bold"),
-                                        dcc.Dropdown(
-                                            id='kraken-sample-dropdown',
-                                            placeholder="Select a sample"
-                                        ),
-                                    ],
-                                    className="mb-3"
-                                ),
-                                dcc.Graph(id='kraken-bar-plot', style={'height': '500px'}),
-                            ]
-                        ),
-                    ],
-                    className="shadow-sm mb-4"
-                ),
-                width=6
+            
+            # Placeholder for Data Table Container
+            dbc.Row(
+                dbc.Col(
+                    dcc.Loading(
+                        children=[html.Div(id="data-table-container", children=[])],
+                        type="default"
+                    ),
+                    width=12
+                )
             ),
         ]
     )
-
-
-
-
-
 
 # Sankey plot section
 def get_sankey_section():
@@ -214,73 +202,6 @@ def get_sankey_section():
             ),
         ]
     )
-
-# abundance bar plot
-def get_kraken_bar_plot():
-    return dbc.Container(
-        [
-            dbc.Row(
-                [
-                    # Dropdown menu on the left
-                    dbc.Col(
-                        [
-                            dbc.Card(
-                                [
-                                    dbc.CardHeader(
-                                        html.H5("Controls", className="text-white"),
-                                        className="bg-secondary"
-                                    ),
-                                    dbc.CardBody(
-                                        [
-                                            html.Label("Select a Sheet:", className="fw-bold"),
-                                            dcc.Dropdown(
-                                                id='unique-kraken-sheet-dropdown',  # Updated ID
-                                                placeholder="Select a sheet"
-                                            ),
-                                            html.Br(),
-                                            html.Label("Select a Sample:", className="fw-bold"),
-                                            dcc.Dropdown(
-                                                id='unique-kraken-sample-dropdown',  # Updated ID
-                                                placeholder="Select a sample"
-                                            ),
-                                        ]
-                                    ),
-                                ],
-                                className="shadow-sm mb-4"
-                            )
-                        ],
-                        width=3,  # Set the width for the dropdown column
-                    ),
-
-                    # Spacer Column to move the plot further right
-                    dbc.Col([], width=1),
-
-                    # Plot on the right
-                    dbc.Col(
-                        [
-                            dbc.Card(
-                                [
-                                    dbc.CardHeader(
-                                        html.H5("Kraken Bar Plot by Sample", className="text-white"),
-                                        className="bg-secondary"
-                                    ),
-                                    dbc.CardBody(
-                                        dcc.Graph(id='unique-kraken-bar-plot', style={'height': '500px'}),  # Updated ID
-                                    ),
-                                ],
-                                className="shadow-sm mb-4"
-                            )
-                        ],
-                        width=8,  # Set the width for the plot column
-                    ),
-                ],
-                align="start",  # Align at the start of the row
-            ),
-        ],
-        fluid=True,  # Allow full-width layout
-    )
-
-
 
 # Main layout combining all sections
 def create_layout():

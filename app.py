@@ -1,6 +1,6 @@
 from dash import Dash
 import dash_bootstrap_components as dbc
-from layouts import get_file_upload, get_data_display, get_sankey_section, get_kraken_bar_plot
+from layouts import get_file_upload, get_data_display, get_sankey_section
 from callbacks import register_callbacks
 
 # Initialize the app
@@ -15,9 +15,7 @@ app.layout = dbc.Container([
     get_file_upload(),      # File upload section
     get_data_display(),     # Spreadsheet data and bar plot section
     get_sankey_section(),   # Sankey plot section
-    get_kraken_bar_plot()   # Kraken Bar Plot section
-], fluid=True, style={"backgroundColor": "#1e1e1e", "paddingBottom": "20px"})
-
+    ], fluid=True, style={"backgroundColor": "#1e1e1e", "paddingBottom": "20px"})
 
 # Register callbacks
 register_callbacks(app, uploaded_data)
@@ -25,4 +23,3 @@ register_callbacks(app, uploaded_data)
 # Run the app
 if __name__ == "__main__":
     app.run_server(debug=True, port=8051)
-
