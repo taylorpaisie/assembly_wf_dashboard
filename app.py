@@ -4,7 +4,7 @@ from layouts import get_file_upload, get_data_display, get_sankey_section
 from callbacks import register_callbacks
 
 # Initialize the app
-app = Dash(__name__, external_stylesheets=[dbc.themes.CYBORG, dbc.icons.BOOTSTRAP])
+app = Dash(__name__, external_stylesheets=[dbc.themes.DARKLY, dbc.icons.BOOTSTRAP])
 server = app.server
 
 # Global variable for uploaded data
@@ -22,5 +22,5 @@ register_callbacks(app, uploaded_data)
 
 # Run the app
 if __name__ == "__main__":
-    app.run_server(debug=True, port=8051)
+    app.run_server(debug=True, port=8052)
 

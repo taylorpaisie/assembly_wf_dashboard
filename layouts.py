@@ -28,6 +28,7 @@ def get_file_upload():
                             'textAlign': 'center',
                             'margin': '10px',
                             'backgroundColor': '#f8f9fa',
+                            'color': '#000000'
                         },
                         multiple=False
                     ),
@@ -35,7 +36,14 @@ def get_file_upload():
                     html.Div(
                         [
                             html.Label("Select a Sheet:", className="fw-bold mt-3"),
-                            dcc.Dropdown(id='sheet-dropdown', placeholder="No sheet selected yet"),
+                            dcc.Dropdown(
+                                id='sheet-dropdown', 
+                                placeholder="No sheet selected yet",
+                                style={
+                                    'color': '#000000',  # Black text
+                                    'backgroundColor': '#ffffff',  # White background
+                                }
+                            )
                         ],
                         className="mt-3"
                     ),
@@ -86,7 +94,11 @@ def get_data_display():
                                         html.Label("Select X-Axis:", className="fw-bold"),
                                         dcc.Dropdown(
                                             id='x-axis-dropdown',
-                                            placeholder="Select column for X-axis"
+                                            placeholder="Select column for X-axis",
+                                            style={
+                                                'color': '#000000',  # Black text
+                                                'backgroundColor': '#ffffff',  # White background
+                                            }
                                         ),
                                     ],
                                     className="mb-3"
@@ -96,7 +108,11 @@ def get_data_display():
                                         html.Label("Select Y-Axis:", className="fw-bold"),
                                         dcc.Dropdown(
                                             id='y-axis-dropdown',
-                                            placeholder="Select column for Y-axis"
+                                            placeholder="Select column for Y-axis",
+                                            style={
+                                                'color': '#000000',  # Black text
+                                                'backgroundColor': '#ffffff',  # White background
+                                            }                                            
                                         ),
                                     ],
                                     className="mb-3"
@@ -125,7 +141,11 @@ def get_data_display():
                                         html.Label("Select a Sheet:", className="fw-bold"),
                                         dcc.Dropdown(
                                             id='kraken-sheet-dropdown',
-                                            placeholder="Select a sheet"
+                                            placeholder="Select a sheet",
+                                            style={
+                                                'color': '#000000',  # Black text
+                                                'backgroundColor': '#ffffff',  # White background
+                                            }                                           
                                         ),
                                     ],
                                     className="mb-3"
@@ -135,7 +155,11 @@ def get_data_display():
                                         html.Label("Select a Sample:", className="fw-bold"),
                                         dcc.Dropdown(
                                             id='kraken-sample-dropdown',
-                                            placeholder="Select a sample"
+                                            placeholder="Select a sample",
+                                            style={
+                                                'color': '#000000',  # Black text
+                                                'backgroundColor': '#ffffff',  # White background
+                                            }                                             
                                         ),
                                     ],
                                     className="mb-3"
@@ -174,7 +198,11 @@ def get_sankey_section():
                                         html.Label("Select a Sheet:", className="fw-bold"),
                                         dcc.Dropdown(
                                             id='sankey-sheet-dropdown',
-                                            placeholder="Select a sheet"
+                                            placeholder="Select a sheet",
+                                            style={
+                                                'color': '#000000',  # Black text
+                                                'backgroundColor': '#ffffff',  # White background
+                                            }                                            
                                         ),
                                     ],
                                     className="mb-3"
@@ -184,7 +212,11 @@ def get_sankey_section():
                                         html.Label("Select a Sample:", className="fw-bold"),
                                         dcc.Dropdown(
                                             id='sample-dropdown',
-                                            placeholder="Select a sample"
+                                            placeholder="Select a sample",
+                                            style={
+                                                'color': '#000000',  # Black text
+                                                'backgroundColor': '#ffffff',  # White background
+                                            }                                             
                                         ),
                                     ],
                                     className="mb-3"
