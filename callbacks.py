@@ -6,6 +6,7 @@ import plotly.graph_objects as go
 from dash.dash_table import DataTable
 from plots import generate_sankey_plot
 from plotly.colors import qualitative
+from sankey_plot_fixed import build_sankey_from_kraken 
 
 
 def register_callbacks(app, uploaded_data):
@@ -14,7 +15,7 @@ def register_callbacks(app, uploaded_data):
             Output('upload-status', 'children'),
             Output('sankey-sheet-dropdown', 'options'),
             Output('sheet-dropdown', 'options'),
-            Output('kraken-sheet-dropdown', 'options')  # Add this for Kraken dropdown
+            Output('kraken-sheet-dropdown', 'options')
         ],
         Input('upload-data', 'contents'),
         State('upload-data', 'filename'),
@@ -22,13 +23,25 @@ def register_callbacks(app, uploaded_data):
     def handle_file_upload(contents, filename):
         if contents is not None:
             try:
+                print(f"File uploaded: {filename}")  # Debugging message
                 content_type, content_string = contents.split(',')
                 decoded = io.BytesIO(base64.b64decode(content_string))
 
-                # Load the uploaded Excel file
-                excel_data = pd.ExcelFile(decoded)
-                uploaded_data['data'] = excel_data
-                sheets = excel_data.sheet_names
+                if filename.endswith('.xlsx') or filename.endswith('.xls'):
+                    print("Detected Excel file")  # Debugging message
+                    excel_data = pd.ExcelFile(decoded)
+                    uploaded_data['data'] = excel_data
+                    sheets = excel_data.sheet_names
+                elif filename.endswith('.tsv') or filename.endswith('.txt'):
+                    print("Detected TSV file")  # Debugging message
+                    df = pd.read_csv(decoded, sep='\t')
+
+                    print(f"TSV Loaded: {df.head()}")  # Print first few rows
+                    uploaded_data['data'] = {"TSV File": df}  # Simulate a "sheet" for TSV
+                    sheets = ["TSV File"]
+                else:
+                    print("Unsupported file format")  # Debugging message
+                    return f"Unsupported file format: {filename}", [], [], []
 
                 if not sheets:
                     return "No sheets found in the uploaded file.", [], [], []
@@ -188,48 +201,37 @@ def register_callbacks(app, uploaded_data):
     )
     def generate_sankey_plot_callback(sheet_name, selected_sample):
         print("generate_sankey_plot_callback triggered")
-        if sheet_name and selected_sample and 'data' in uploaded_data:
+        if sheet_name and 'data' in uploaded_data:
             try:
-                excel_data = uploaded_data['data']
-                df = excel_data.parse(sheet_name)
+                data_source = uploaded_data['data']
 
-                # Filter data for the selected sample
-                df = df[df['Sample_name'] == selected_sample]
-                print(f"Filtered data: {len(df)} rows")
+                if isinstance(data_source, pd.ExcelFile):  # Excel File
+                    print(f"Loading Excel sheet: {sheet_name}")
+                    df = data_source.parse(sheet_name)
+                elif isinstance(data_source, dict) and sheet_name in data_source:  # TSV File
+                    print("Using TSV data")  # Debugging message
+                    df = data_source[sheet_name]
+                else:
+                    print("Error: Sheet not found in uploaded data")  # Debugging message
+                    return go.Figure().update_layout(title="Error: Sheet not found")
 
-                # Dynamically generate nodes and links
-                nodes = []
-                links = {"source": [], "target": [], "value": []}
-                node_map = {}
+                print(f"Data Loaded for Sankey Plot: {df.head()}")  # Debugging message
 
-                def get_node_index(name):
-                    if name not in node_map:
-                        node_map[name] = len(nodes)
-                        nodes.append(name)
-                    return node_map[name]
+                # Save filtered data as a temporary TSV file
+                temp_tsv_path = "temp_sankey_data.tsv"
+                df.to_csv(temp_tsv_path, sep='\t', index=False)
 
-                # Build nodes and links based on hierarchical columns
-                hierarchy = ['Genus', 'Species']
-                for _, row in df.iterrows():
-                    parent_index = get_node_index(selected_sample)
-                    for level in hierarchy:
-                        if pd.notna(row.get(level)):
-                            current_index = get_node_index(row[level])
-                            links["source"].append(parent_index)
-                            links["target"].append(current_index)
-                            links["value"].append(row.get('Reads_(%)', 1))
-                            parent_index = current_index
+                # Generate the Sankey plot
+                fig = build_sankey_from_kraken(temp_tsv_path, 'sankey_output.html')
 
-                print(f"Nodes: {nodes}")
-                print(f"Links: {links}")
-
-                return generate_sankey_plot(nodes, links)
+                return fig
 
             except Exception as e:
                 print(f"Error generating Sankey plot: {e}")
                 return go.Figure().update_layout(title=f"Error: {e}")
 
         return go.Figure().update_layout(title="No Data to Display")
+
     
 
     @app.callback(
@@ -305,14 +307,6 @@ def register_callbacks(app, uploaded_data):
                 return go.Figure().update_layout(title=f"Error: {e}")
 
         return go.Figure().update_layout(title="No Data to Display")
-
-
-
-
-
-
-
-
 
 
 
