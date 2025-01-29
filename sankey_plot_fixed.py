@@ -2,13 +2,15 @@ import pandas as pd
 import plotly.graph_objects as go
 import plotly.colors as pc
 
-def build_sankey_from_kraken(file_path, output_html):
-    # Load Kraken2 output file
-    kraken_data = pd.read_csv(file_path, sep='\t', header=None)
-    kraken_data.columns = ['percentage', 'reads_clade', 'reads_taxon', 'rank', 'NCBI_tax_ID', 'name']
-    
+def build_sankey_from_kraken(df):
+    """
+    Generates a Sankey diagram from a Kraken2 TSV DataFrame.
+    :param df: Pandas DataFrame containing the Kraken2 classification.
+    :return: Plotly figure object
+    """
+
     # Ensure correct filtering: Select only Bacteria-related entries
-    filtered_data = kraken_data[kraken_data['name'].str.contains('Bacteria', na=False, case=False)].copy()
+    filtered_data = df[df['name'].str.contains('Bacteria', na=False, case=False)].copy()
     
     # Extract hierarchical relationships based on taxonomy rank
     filtered_data['name_clean'] = filtered_data['name'].str.strip()
@@ -17,7 +19,6 @@ def build_sankey_from_kraken(file_path, output_html):
     node_indices = {}
     nodes = []
     sources, targets, values = [], [], []
-    parent_map = {}
     
     # Define a structured taxonomic hierarchy
     taxonomic_ranks = ['D', 'K', 'P', 'C', 'O', 'F', 'G', 'S']  # Domain to Species
@@ -47,7 +48,7 @@ def build_sankey_from_kraken(file_path, output_html):
     # Ensure there are valid links before generating the Sankey diagram
     if not sources or not targets or not values:
         print("Error: No valid links were created. Check input data structure.")
-        return
+        return go.Figure().update_layout(title="No Data Available for Sankey Plot")
     
     # Define color scheme with gradient flow
     color_palette = pc.qualitative.Set2  # More distinct colors
@@ -82,11 +83,4 @@ def build_sankey_from_kraken(file_path, output_html):
         hovermode='x unified'  # Improve interactivity
     )
     
-    # Save to HTML file
-    fig.write_html(output_html)
-    print(f'Sankey diagram saved to {output_html}')
-    
     return fig
-
-# Example usage
-build_sankey_from_kraken('2002721109_S2_L001.kraken2_output.tsv', 'sankey_output.html')

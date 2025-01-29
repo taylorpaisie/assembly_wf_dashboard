@@ -34,7 +34,8 @@ def register_callbacks(app, uploaded_data):
                     sheets = excel_data.sheet_names
                 elif filename.endswith('.tsv') or filename.endswith('.txt'):
                     print("Detected TSV file")  # Debugging message
-                    df = pd.read_csv(decoded, sep='\t')
+                    kraken_columns = ['percentage', 'reads_clade', 'reads_taxon', 'rank', 'NCBI_tax_ID', 'name']
+                    df = pd.read_csv(decoded, sep='\t', names=kraken_columns, header=None)
 
                     print(f"TSV Loaded: {df.head()}")  # Print first few rows
                     uploaded_data['data'] = {"TSV File": df}  # Simulate a "sheet" for TSV
@@ -194,6 +195,7 @@ def register_callbacks(app, uploaded_data):
                 return []
         return []
 
+
     @app.callback(
         Output('sankey-plot', 'figure'),
         Input('sankey-sheet-dropdown', 'value'),
@@ -201,6 +203,7 @@ def register_callbacks(app, uploaded_data):
     )
     def generate_sankey_plot_callback(sheet_name, selected_sample):
         print("generate_sankey_plot_callback triggered")
+        
         if sheet_name and 'data' in uploaded_data:
             try:
                 data_source = uploaded_data['data']
@@ -209,20 +212,16 @@ def register_callbacks(app, uploaded_data):
                     print(f"Loading Excel sheet: {sheet_name}")
                     df = data_source.parse(sheet_name)
                 elif isinstance(data_source, dict) and sheet_name in data_source:  # TSV File
-                    print("Using TSV data")  # Debugging message
+                    print("Using TSV data")
                     df = data_source[sheet_name]
                 else:
-                    print("Error: Sheet not found in uploaded data")  # Debugging message
+                    print("Error: Sheet not found in uploaded data")
                     return go.Figure().update_layout(title="Error: Sheet not found")
 
                 print(f"Data Loaded for Sankey Plot: {df.head()}")  # Debugging message
 
-                # Save filtered data as a temporary TSV file
-                temp_tsv_path = "temp_sankey_data.tsv"
-                df.to_csv(temp_tsv_path, sep='\t', index=False)
-
-                # Generate the Sankey plot
-                fig = build_sankey_from_kraken(temp_tsv_path, 'sankey_output.html')
+                # **FIX: Call the function correctly with only the DataFrame**
+                fig = build_sankey_from_kraken(df)
 
                 return fig
 
@@ -231,6 +230,7 @@ def register_callbacks(app, uploaded_data):
                 return go.Figure().update_layout(title=f"Error: {e}")
 
         return go.Figure().update_layout(title="No Data to Display")
+
 
     
 
