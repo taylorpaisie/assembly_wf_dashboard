@@ -87,7 +87,7 @@ def get_data_display():
                 dbc.Card(
                     [
                         dbc.CardHeader(
-                            html.H5("Assembly Depth Bar Plot", className="text-white"),
+                            html.H5("Assembly Metrics Bar Plot", className="text-white"),
                             className="bg-secondary"
                         ),
                         dbc.CardBody(
@@ -242,11 +242,6 @@ def get_sankey_section():
             ),
         ]
     )
-
-
-
-
-
 
 
 # Main layout combining all sections

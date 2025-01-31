@@ -77,8 +77,8 @@ def build_sankey_from_kraken(df):
     fig.update_layout(
         title_text='Kraken2 Bacteria Taxonomic Classification Sankey Diagram',
         font_size=14,
-        height=1200,
-        width=1800,
+        height=600,
+        width=900,
         margin=dict(l=120, r=120, t=80, b=80),
         hovermode='x unified'  # Improve interactivity
     )
