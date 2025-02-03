@@ -184,8 +184,10 @@ def get_data_display():
                             html.H5("Kraken Bar Plot", className="text-white"),
                             className="bg-secondary"
                         ),
-                        dbc.CardBody(
-                            dcc.Graph(id='kraken-bar-plot', style={'height': '500px'}),
+                        dcc.Graph(
+                            id="kraken-bar-plot",
+                            figure={},  # Default empty figure
+                            style={"height": "800px"}
                         ),
                     ],
                     className="shadow-sm mb-4"

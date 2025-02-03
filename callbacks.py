@@ -7,6 +7,7 @@ from dash.dash_table import DataTable
 from plots import generate_sankey_plot
 from plotly.colors import qualitative
 from sankey_plot_fixed import build_sankey_from_kraken 
+from kraken_bar_plot import plot_stacked_bar_kraken
 
 
 def register_callbacks(app, uploaded_data):
@@ -232,81 +233,46 @@ def register_callbacks(app, uploaded_data):
         return go.Figure().update_layout(title="No Data to Display")
 
 
-    
-
-    @app.callback(
-        Output('kraken-sample-dropdown', 'options'),
-        Input('kraken-sheet-dropdown', 'value')
-    )
-    def update_sample_dropdown(sheet_name):
-        if sheet_name and 'data' in uploaded_data:
-            try:
-                df = uploaded_data['data'].parse(sheet_name)
-                if 'Sample_name' in df.columns:
-                    unique_samples = df['Sample_name'].dropna().unique()
-                    return [{'label': sample, 'value': sample} for sample in unique_samples]
-                else:
-                    return []
-            except Exception as e:
-                print(f"Error loading samples for sheet {sheet_name}: {e}")
-                return []
-        return []
-
-
     @app.callback(
         Output('kraken-bar-plot', 'figure'),
         Input('kraken-sheet-dropdown', 'value')
     )
     def generate_kraken_stacked_bar_plot(sheet_name):
+        print(f"DEBUG: Selected Sheet: {sheet_name}")  # Debug log
+
         if sheet_name and 'data' in uploaded_data:
             try:
-                # Load the selected sheet
-                df = uploaded_data['data'].parse(sheet_name)
+                if isinstance(uploaded_data['data'], dict):
+                    df = uploaded_data['data'][sheet_name]  # For TSV files
+                else:
+                    df = uploaded_data['data'].parse(sheet_name)  # For Excel files
 
-                # Normalize column names
-                df.columns = df.columns.str.strip()
+                # Debug: Print column names
+                print(f"DEBUG: DataFrame Columns Before Renaming: {df.columns.tolist()}")
 
-                # Validate required columns
-                if 'Sample_name' not in df.columns or 'Reads_(%)' not in df.columns or 'Species.2' not in df.columns:
-                    raise KeyError("'Sample_name', 'Reads_(%)', or 'Species.2' column not found in the DataFrame")
+                # Rename Kraken2 TSV columns to match expected names
+                rename_mapping = {
+                    "rank": "rank",
+                    "reads_taxon": "direct_reads",  # Ensure this matches expected column in plot_stacked_bar_kraken()
+                    "name": "name"
+                }
+                
+                df.rename(columns=rename_mapping, inplace=True)
 
-                # Group data by sample and category
-                grouped_df = (
-                    df.groupby(['Sample_name', 'Species.2'])['Reads_(%)']
-                    .sum()
-                    .reset_index()
-                )
+                # Debug: Print renamed columns
+                print(f"DEBUG: DataFrame Columns After Renaming: {df.columns.tolist()}")
 
-                # Pivot for stacking
-                pivot_df = grouped_df.pivot(index='Sample_name', columns='Species.2', values='Reads_(%)').fillna(0)
+                # Pass to function after renaming
+                fig = plot_stacked_bar_kraken(df)
+                print("DEBUG: Kraken bar plot generated!")  # Debug log
 
-                # Create stacked bar plot
-                fig = go.Figure()
-                for category in pivot_df.columns:
-                    fig.add_trace(go.Bar(
-                        name=category,
-                        x=pivot_df.index,
-                        y=pivot_df[category]
-                    ))
-
-                # Customize the layout
-                fig.update_layout(
-                    barmode='stack',  # Stacked bar mode
-                    title=f"Kraken Stacked Bar Plot for {sheet_name}",
-                    xaxis_title="Sample",
-                    yaxis_title="Percentage of Reads (%)",
-                    plot_bgcolor='#2c2f34',
-                    paper_bgcolor='#1e1e1e',
-                    font_color="white",
-                    legend_title="Category"
-                )
                 return fig
 
             except Exception as e:
-                print(f"Error generating Kraken stacked bar plot: {e}")
+                print(f"ERROR: {e}")
                 return go.Figure().update_layout(title=f"Error: {e}")
 
+        print("DEBUG: No data selected.")
         return go.Figure().update_layout(title="No Data to Display")
-
 
 
