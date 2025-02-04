@@ -27,7 +27,8 @@ def build_sankey_from_kraken(df, min_reads=1, rank_filter=None):
     sources, targets, values = [], [], []
     
     # Define a structured taxonomic hierarchy
-    taxonomic_ranks = ['D', 'K', 'P', 'C', 'O', 'F', 'G', 'S']  # Domain to Species
+    # taxonomic_ranks = ['D', 'K', 'P', 'C', 'O', 'F', 'G', 'S']
+    taxonomic_ranks = ['G', 'S']
     df['rank_level'] = df['rank'].apply(lambda x: taxonomic_ranks.index(x) if x in taxonomic_ranks else len(taxonomic_ranks))
     
     # Sort by rank level to maintain order
