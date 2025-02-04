@@ -11,7 +11,7 @@ def plot_stacked_bar_kraken(df):
     df["name"] = df["name"].str.strip()
 
     # Filter for Phylum level (rank = "P")
-    phylum_df = df[df["rank"] == "P"]
+    phylum_df = df[df["rank"] == "S"]
 
     # Select relevant columns and convert read counts to integers
     phylum_df = phylum_df[["name", "direct_reads"]]
@@ -36,7 +36,7 @@ def plot_stacked_bar_kraken(df):
 
     # Formatting
     fig.update_layout(
-        title="Stacked Bar Chart of Reads by Phylum",
+        title="Stacked Bar Chart of Reads by Species",
         xaxis_title="",
         yaxis_title="Proportion of Reads",
         barmode="stack",
