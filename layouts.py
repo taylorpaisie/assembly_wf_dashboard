@@ -242,6 +242,18 @@ def get_sankey_section():
                 ),
                 width=6
             ),
+            dbc.Col(
+                dbc.Card(
+                    [
+                        dbc.CardHeader(html.H5("Sankey Table", className="text-white"), className="bg-secondary"),
+                        dbc.CardBody(
+                            html.Div(id='sankey-table')  # Placeholder for the table
+                        ),
+                    ],
+                    className="shadow-sm mb-4"
+                ),
+                width=12
+            ),
         ]
     )
 

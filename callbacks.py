@@ -64,7 +64,13 @@ def register_callbacks(app, uploaded_data):
     def update_axis_dropdowns(sheet_name):
         if sheet_name and 'data' in uploaded_data:
             try:
-                df = uploaded_data['data'].parse(sheet_name)
+                if isinstance(uploaded_data['data'], pd.ExcelFile):  # Excel File
+                    df = uploaded_data['data'].parse(sheet_name)
+                elif isinstance(uploaded_data['data'], dict) and sheet_name in uploaded_data['data']:  # TSV File
+                    df = uploaded_data['data'][sheet_name]
+                else:
+                    return []
+
 
                 # Extract numeric columns for Y-axis and all columns for X-axis
                 all_cols = df.columns.tolist()
@@ -198,7 +204,7 @@ def register_callbacks(app, uploaded_data):
 
 
     @app.callback(
-        Output('sankey-plot', 'figure'),
+        [Output('sankey-plot', 'figure'), Output('sankey-table', 'children')],
         Input('sankey-sheet-dropdown', 'value'),
         Input('sample-dropdown', 'value')
     )
@@ -217,20 +223,30 @@ def register_callbacks(app, uploaded_data):
                     df = data_source[sheet_name]
                 else:
                     print("Error: Sheet not found in uploaded data")
-                    return go.Figure().update_layout(title="Error: Sheet not found")
+                    return (
+                        go.Figure().update_layout(title="Error: Sheet not found"),
+                        html.Div("Error: Sheet not found")
+                    )
 
                 print(f"Data Loaded for Sankey Plot: {df.head()}")  # Debugging message
 
-                # **FIX: Call the function correctly with only the DataFrame**
-                fig = build_sankey_from_kraken(df)
-
-                return fig
+                # **Call function correctly to extract both Figure and Table**
+                fig, table = build_sankey_from_kraken(df)  # Extract figure and table separately
+                
+                return fig, table  # Return both outputs
 
             except Exception as e:
                 print(f"Error generating Sankey plot: {e}")
-                return go.Figure().update_layout(title=f"Error: {e}")
+                return (
+                    go.Figure().update_layout(title=f"Error: {e}"),
+                    html.Div(f"Error generating table: {e}")
+                )
 
-        return go.Figure().update_layout(title="No Data to Display")
+        return (
+            go.Figure().update_layout(title="No Data to Display"),
+            html.Div("No Data Available")
+        )
+
 
 
     @app.callback(
