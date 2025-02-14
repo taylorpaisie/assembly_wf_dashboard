@@ -95,7 +95,7 @@ def register_callbacks(app, uploaded_data):
         Output('coverage-bar-plot', 'figure'),
         Input('sheet-dropdown', 'value'),
         Input('x-axis-dropdown', 'value'),
-        Input('y-axis-dropdown', 'value')
+        Input('y-axis-dropdown', 'value'),
     )
     def generate_coverage_bar_plot(sheet_name, x_axis, y_axis):
         if sheet_name and x_axis and y_axis and 'data' in uploaded_data:

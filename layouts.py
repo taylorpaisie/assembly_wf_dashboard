@@ -1,6 +1,7 @@
 from dash import dcc, html
 import dash_bootstrap_components as dbc
 
+
 # File upload section
 def get_file_upload():
     return dbc.Card(
@@ -55,9 +56,65 @@ def get_file_upload():
     )
 
 
-
 # Data display section with bar plot
 def get_data_display():
+    return dbc.Row(
+        [
+            dbc.Col(
+                dbc.Card(
+                    [
+                        dbc.CardHeader(html.H5("Spreadsheet Data", className="text-white"), className="bg-secondary"),
+                        dbc.CardBody([dcc.Loading(children=[html.Div(id="data-table-container")], type="default")]),
+                    ],
+                    className="shadow-sm mb-4"
+                ),
+                width=6
+            ),
+
+            dbc.Col(
+                dbc.Card(
+                    [
+                        dbc.CardHeader(html.H5("Assembly Metrics Bar Plot", className="text-white"), className="bg-secondary"),
+                        dbc.CardBody(
+                            [
+                                html.Div([
+                                    html.Label("Select X-Axis:", className="fw-bold"),
+                                    dcc.Dropdown(id='x-axis-dropdown', placeholder="Select column for X-axis")
+                                ], className="mb-3"),
+                                html.Div([
+                                    html.Label("Select Y-Axis:", className="fw-bold"),
+                                    dcc.Dropdown(id='y-axis-dropdown', placeholder="Select column for Y-axis")
+                                ], className="mb-3"),
+                                dcc.Graph(id='coverage-bar-plot', style={'height': '500px'}),
+                            ]
+                        ),
+                    ],
+                    className="shadow-sm mb-4"
+                ),
+                width=6
+            ),
+
+            # 🛠 Ensure kraken-sheet-dropdown is always present
+            dbc.Col(
+                dbc.Card(
+                    [
+                        dbc.CardHeader(html.H5("Kraken Controls", className="text-white"), className="bg-secondary"),
+                        dbc.CardBody(
+                            [
+                                html.Div([
+                                    html.Label("Select a Kraken Sheet:", className="fw-bold"),
+                                    dcc.Dropdown(id='kraken-sheet-dropdown', placeholder="Select a sheet")
+                                ], className="mb-3")
+                            ]
+                        ),
+                    ],
+                    className="shadow-sm mb-4"
+                ),
+                width=6
+            ),
+        ]
+    )
+
     return dbc.Row(
         [
             # Column for displaying spreadsheet data
@@ -126,6 +183,9 @@ def get_data_display():
                     ],
                     className="shadow-sm mb-4"
                 ),
+
+
+
                 width=6
             ),
 
@@ -258,36 +318,47 @@ def get_sankey_section():
     )
 
 
-# Main layout combining all sections
+def get_about_section():
+    return html.Div([
+        html.H3("About This Dashboard", className="text-primary"),
+        html.P("This dashboard provides a visualization of taxonomic analysis using Kraken2 outputs, "
+               "bar plots for assembly depth, and Sankey plots to illustrate taxonomic distribution."),
+        html.P("It supports TSV and Excel file uploads to visualize Kraken2 and assembly depth data."),
+    ], style={'padding': '20px'})
+
+def get_how_to_use_section():
+    return html.Div([
+        html.H3("How to Use", className="text-primary"),
+        html.P("1. Upload a TSV or Excel file using the upload section."),
+        html.P("2. Select a sheet from the dropdown to visualize the data."),
+        html.P("3. Use the available controls to customize the plots."),
+        html.P("4. The Sankey plot requires selecting a sample from the dataset."),
+    ], style={'padding': '20px'})
+
+def get_tabs_section():
+    return dbc.Tabs([
+        dbc.Tab(label="Dashboard", tab_id="tab-dashboard"),
+        dbc.Tab(label="About", tab_id="tab-about"),
+        dbc.Tab(label="How to Use", tab_id="tab-how-to-use"),
+    ], id="tabs", active_tab="tab-dashboard")
+
+def get_content():
+    return html.Div(id="tab-content")
+
 def create_layout():
-    return dbc.Container(
-        fluid=True,
-        children=[
-            # Header Section
-            dbc.Row(
-                dbc.Col(
-                    html.Div(
-                        "Taxonomic Analysis Dashboard",
-                        className="text-center bg-primary text-white p-3 rounded",
-                        style={"fontSize": "24px", "fontWeight": "bold"}
-                    ),
-                    width=12
-                )
-            ),
-            html.Br(),
-
-            # Upload Section
-            dbc.Row(
-                dbc.Col(get_file_upload(), width=12)
-            ),
-            html.Br(),
-
-            # Data Display Section
-            get_data_display(),
-            html.Br(),
-
-            # Sankey Section
-            get_sankey_section(),
-        ],
-        style={"padding": "20px"}
-    )
+    return dbc.Container([
+        dbc.Row(
+            dbc.Col(
+                html.Div(
+                    "Taxonomic Analysis Dashboard",
+                    className="text-center bg-primary text-white p-3 rounded",
+                    style={"fontSize": "24px", "fontWeight": "bold"}
+                ),
+                width=12
+            )
+        ),
+        html.Br(),
+        get_tabs_section(),
+        html.Br(),
+        get_content(),
+    ], fluid=True, style={"padding": "20px"})
