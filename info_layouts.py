@@ -23,6 +23,17 @@ def get_about_section():
                 html.Li("🔹 Select individual sheets and samples for analysis"),
             ]),
             html.P("This tool is developed to assist bioinformaticians in taxonomic and assembly depth analysis."),
+            html.P([
+                "This application was created and maintained by Taylor K. Paisie. Check out my ",
+                html.A("website", href="https://taylorpaisie.github.io/", target="_blank", className="text-primary fw-bold"),
+                " or my ",
+                html.A("Github Repositories", href="https://github.com/taylorpaisie", target="_blank", className="text-primary fw-bold"),
+                "."
+            ]),
+            html.P(["If you have any questions or issues about the SNP Workflow Dashboard, please submit an issue on the ",
+                html.A("Assembly Workflow Github Repository", href="https://github.com/taylorpaisie/assembly_wf_dashboard", target="_blank", className="text-primary fw-bold"),
+                "."
+            ])            
         ],
         style={'padding': '20px'}
     )
