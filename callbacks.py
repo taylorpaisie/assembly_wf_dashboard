@@ -205,10 +205,9 @@ def register_callbacks(app, uploaded_data):
 
     @app.callback(
         [Output('sankey-plot', 'figure'), Output('sankey-table', 'children')],
-        Input('sankey-sheet-dropdown', 'value'),
-        Input('sample-dropdown', 'value')
+        Input('sankey-sheet-dropdown', 'value')
     )
-    def generate_sankey_plot_callback(sheet_name, selected_sample):
+    def generate_sankey_plot_callback(sheet_name):
         print("generate_sankey_plot_callback triggered")
         
         if sheet_name and 'data' in uploaded_data:
