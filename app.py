@@ -1,11 +1,11 @@
 from dash import Dash, html, Output, Input
 import dash_bootstrap_components as dbc
-from layouts import create_layout, get_about_section, get_how_to_use_section, get_file_upload, get_data_display, get_sankey_section
+from layouts import create_layout, get_file_upload, get_data_display, get_sankey_section
 from callbacks import register_callbacks
+from info_layouts import get_about_section, get_how_to_use_section  # Import new layouts
 
 # Initialize the app
 app = Dash(__name__, external_stylesheets=[dbc.themes.DARKLY, dbc.icons.BOOTSTRAP], suppress_callback_exceptions=True)
-
 server = app.server
 
 # Global variable for uploaded data
