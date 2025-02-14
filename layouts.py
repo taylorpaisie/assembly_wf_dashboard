@@ -7,7 +7,7 @@ def get_file_upload():
     return dbc.Card(
         [
             dbc.CardHeader(
-                html.H5("Assembly Metrics Dashboard - Upload Excel or Kraken2 TSV File", className="text-white"),
+                html.H5("Assembly Metrics Dashboard - Upload Excel or Kraken TSV File", className="text-white"),
                 className="bg-primary"
             ),
             dbc.CardBody(
@@ -189,15 +189,7 @@ def get_sankey_section():
     )
 
 
-# def get_about_section():
-    return html.Div([
-        html.H3("About This Dashboard", className="text-primary"),
-        html.P("This dashboard provides a visualization of taxonomic analysis using Kraken2 outputs, "
-               "bar plots for assembly depth, and Sankey plots to illustrate taxonomic distribution."),
-        html.P("It supports TSV and Excel file uploads to visualize Kraken2 and assembly depth data."),
-    ], style={'padding': '20px'})
 
-# def get_how_to_use_section():
     return html.Div([
         html.H3("How to Use", className="text-primary"),
         html.P("1. Upload a TSV or Excel file using the upload section."),
@@ -221,7 +213,7 @@ def create_layout():
         dbc.Row(
             dbc.Col(
                 html.Div(
-                    "Taxonomic Analysis Dashboard",
+                    "Assembly Metrics and Taxonomic Analysis Dashboard",
                     className="text-center bg-primary text-white p-3 rounded",
                     style={"fontSize": "24px", "fontWeight": "bold"}
                 ),
