@@ -30,7 +30,7 @@ def get_about_section():
                 html.A("Github Repositories", href="https://github.com/taylorpaisie", target="_blank", className="text-primary fw-bold"),
                 "."
             ]),
-            html.P(["If you have any questions or issues about the SNP Workflow Dashboard, please submit an issue on the ",
+            html.P(["If you have any questions or issues about the Assembly Workflow Dashboard, please submit an issue on the ",
                 html.A("Assembly Workflow Github Repository", href="https://github.com/taylorpaisie/assembly_wf_dashboard", target="_blank", className="text-primary fw-bold"),
                 "."
             ])            
