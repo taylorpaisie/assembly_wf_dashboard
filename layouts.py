@@ -115,7 +115,7 @@ def get_data_display():
                     ],
                     className="shadow-sm mb-4"
                 ),
-                width=3
+                width=2
             ),
 
             # Kraken Bar Plot (Restoring missing plot)
@@ -124,12 +124,12 @@ def get_data_display():
                     [
                         dbc.CardHeader(html.H5("Kraken Bar Plot", className="text-white"), className="bg-secondary"),
                         dbc.CardBody(
-                            dcc.Graph(id="kraken-bar-plot", figure={}, style={"height": "500px"})
+                            dcc.Graph(id="kraken-bar-plot", figure={}, style={"height": "600px"})
                         ),
                     ],
                     className="shadow-sm mb-4"
                 ),
-                width=9
+                width=7
             ),
         ]
     )
@@ -157,7 +157,7 @@ def get_sankey_section():
                         ),
                     ]
                 ),
-                width=6
+                width=2
             ),
             dbc.Col(
                 dbc.Card(
@@ -171,7 +171,7 @@ def get_sankey_section():
                         ),
                     ]
                 ),
-                width=6
+                width=7
             ),
             dbc.Col(
                 dbc.Card(
