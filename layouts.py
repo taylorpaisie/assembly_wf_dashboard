@@ -7,7 +7,7 @@ def get_file_upload():
     return dbc.Card(
         [
             dbc.CardHeader(
-                html.H5("Assembly Metrics Dashboard - Upload Excel or Kraken TSV File", className="text-white"),
+                html.H5("Assembly Metrics Dashboard - Upload Summary Excel File", className="text-white"),
                 className="bg-primary"
             ),
             dbc.CardBody(

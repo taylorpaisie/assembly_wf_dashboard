@@ -262,46 +262,26 @@ def register_callbacks(app, uploaded_data):
         [Input('kraken-sheet-dropdown', 'value')]
     )
     def generate_sankey_plot_callback(sheet_name):
-        print("\n=== DEBUG: Sankey Plot Callback Triggered ===")  # Debugging log
-
         if sheet_name and 'data' in uploaded_data:
             try:
                 data_source = uploaded_data['data']
-
-                # Use Kraken TSV Data
                 if isinstance(data_source, dict) and sheet_name in data_source:
                     df = data_source[sheet_name]
                 else:
-                    print("ERROR: Kraken TSV data not found in uploaded_data.")
                     return (
                         go.Figure().update_layout(title="Error: Kraken TSV Data Not Found"),
                         html.Div("Error: Kraken TSV Data Not Found")
                     )
 
-                print(f"DEBUG: Kraken TSV Data Loaded for Sankey Plot: {df.head()}")  # Debugging
-
-                # Generate Sankey Diagram & Table
-                result = build_sankey_from_kraken(df)
-
-                # Ensure the return value is a valid tuple with two elements
-                if not isinstance(result, tuple) or len(result) != 2:
-                    print("ERROR: build_sankey_from_kraken() did not return a valid tuple!")
-                    return (
-                        go.Figure().update_layout(title="Error: Invalid Sankey Output"),
-                        html.Div("Error: Invalid Sankey Output")
-                    )
-
-                fig, table = result
+                fig, table = build_sankey_from_kraken(df)
                 return fig, table
 
             except Exception as e:
-                print(f"ERROR: Failed to generate Sankey plot - {e}")
                 return (
                     go.Figure().update_layout(title=f"Error: {e}"),
                     html.Div(f"Error generating table: {e}")
                 )
 
-        print("DEBUG: No Kraken sheet selected for Sankey plot.")
         return (
             go.Figure().update_layout(title="No Data to Display"),
             html.Div("No Data Available")
