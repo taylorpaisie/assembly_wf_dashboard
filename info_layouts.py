@@ -60,6 +60,19 @@ def get_how_to_use_section():
                 html.Li("For large datasets, expect a short processing time."),
             ]),
             html.P("By following these steps, you can easily explore your dataset."),
+
+            html.Figure([
+                html.Img(
+                    src='/assets/hiding_ham.jpg',  # Path to the image
+                    alt='Hiding Hamilton',
+                    style={'width': '25%', 'height': 'auto', 'marginTop': '20px'}
+                ),
+                html.Figcaption(
+                    "Don't be like Hamilton and hide from your data!",
+                    style={'textAlign': 'left', 'fontStyle': 'italic', 'marginTop': '10px'}
+                )
+            ])
+
         ],
         style={'padding': '20px'}
     )
