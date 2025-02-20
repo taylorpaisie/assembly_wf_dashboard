@@ -1,6 +1,6 @@
 from dash import Dash, html, Output, Input
 import dash_bootstrap_components as dbc
-from layouts import create_layout, get_file_upload, get_data_display, get_sankey_section
+from layouts import create_layout, get_file_upload, get_data_display, get_sankey_section, get_taxonomy_analysis_section
 from callbacks import register_callbacks
 from info_layouts import get_about_section, get_how_to_use_section  # Import new layouts
 
@@ -17,7 +17,7 @@ app.layout = create_layout()
 # Register callbacks
 register_callbacks(app, uploaded_data)
 
-# Callback to switch tabs
+# Callback to switch tabs and ensure correct components are loaded
 @app.callback(
     Output("tab-content", "children"),
     Input("tabs", "active_tab")
@@ -27,13 +27,15 @@ def update_tab_content(active_tab):
         return get_about_section()
     elif active_tab == "tab-how-to-use":
         return get_how_to_use_section()
+    elif active_tab == "tab-taxonomy-analysis":
+        return get_taxonomy_analysis_section()
     else:
+        # Dashboard should only have file upload and data display
         return html.Div([
-            get_file_upload(),
+            get_file_upload(),  
             get_data_display(),
-            html.Br(),
-            get_sankey_section(),
         ])
+
 
 # Run the app
 if __name__ == "__main__":

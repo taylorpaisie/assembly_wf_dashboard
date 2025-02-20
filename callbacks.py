@@ -9,52 +9,106 @@ from plotly.colors import qualitative
 from sankey_plot_fixed import build_sankey_from_kraken 
 from kraken_bar_plot import plot_stacked_bar_kraken
 
+from dash.exceptions import PreventUpdate
+from dash import callback_context
+
 
 def register_callbacks(app, uploaded_data):
+
+    # Callback for Dashboard file upload (Excel)
     @app.callback(
         [
             Output('upload-status', 'children'),
-            Output('sankey-sheet-dropdown', 'options'),
-            Output('sheet-dropdown', 'options'),
-            Output('kraken-sheet-dropdown', 'options')
+            Output('sheet-dropdown', 'options')
         ],
-        Input('upload-data', 'contents'),
-        State('upload-data', 'filename'),
+        [Input('upload-data', 'contents')],
+        [State('upload-data', 'filename')],
+        prevent_initial_call=True
     )
-    def handle_file_upload(contents, filename):
-        if contents is not None:
-            try:
-                print(f"File uploaded: {filename}")  # Debugging message
-                content_type, content_string = contents.split(',')
-                decoded = io.BytesIO(base64.b64decode(content_string))
+    def handle_excel_upload(upload_contents, upload_filename):
+        if not upload_contents:
+            raise PreventUpdate
 
-                if filename.endswith('.xlsx') or filename.endswith('.xls'):
-                    print("Detected Excel file")  # Debugging message
-                    excel_data = pd.ExcelFile(decoded)
-                    uploaded_data['data'] = excel_data
-                    sheets = excel_data.sheet_names
-                elif filename.endswith('.tsv') or filename.endswith('.txt'):
-                    print("Detected TSV file")  # Debugging message
-                    kraken_columns = ['percentage', 'reads_clade', 'reads_taxon', 'rank', 'NCBI_tax_ID', 'name']
-                    df = pd.read_csv(decoded, sep='\t', names=kraken_columns, header=None)
+        try:
+            content_type, content_string = upload_contents.split(',')
+            decoded = io.BytesIO(base64.b64decode(content_string))
 
-                    print(f"TSV Loaded: {df.head()}")  # Print first few rows
-                    uploaded_data['data'] = {"TSV File": df}  # Simulate a "sheet" for TSV
-                    sheets = ["TSV File"]
-                else:
-                    print("Unsupported file format")  # Debugging message
-                    return f"Unsupported file format: {filename}", [], [], []
+            if upload_filename.endswith('.xlsx') or upload_filename.endswith('.xls'):
+                print("Detected Excel file")  # Debugging
+                excel_data = pd.ExcelFile(decoded)
+                uploaded_data['data'] = excel_data
+                sheets = excel_data.sheet_names
+            else:
+                return f"Unsupported format: {upload_filename}", []
 
-                if not sheets:
-                    return "No sheets found in the uploaded file.", [], [], []
+        except Exception as e:
+            print(f"Error processing file: {e}")
+            return f"Error uploading file: {e}", []
 
-                # Generate options for dropdowns
-                sheet_options = [{'label': sheet, 'value': sheet} for sheet in sheets]
-                return f"Uploaded: {filename}", sheet_options, sheet_options, sheet_options
-            except Exception as e:
-                print(f"Error processing file: {e}")
-                return f"Error uploading file: {e}", [], [], []
-        return "No file uploaded yet", [], [], []
+        sheet_options = [{'label': sheet, 'value': sheet} for sheet in sheets]
+        return f"Uploaded: {upload_filename}", sheet_options
+
+
+
+    # Callback for Taxonomy Analysis Kraken TSV upload
+    @app.callback(
+        [
+            Output('kraken-upload-status', 'children'),
+            Output('kraken-sheet-dropdown', 'options'),
+            Output('sankey-sheet-dropdown', 'options')  # Ensures only Kraken upload updates Sankey dropdown
+        ],
+        [Input('upload-kraken-data', 'contents')],
+        [State('upload-kraken-data', 'filename')],
+        prevent_initial_call=True
+    )
+    def handle_kraken_upload(kraken_contents, kraken_filename):
+        print("\n=== DEBUG: Kraken Upload Callback Triggered ===")  # Debugging log
+
+        if not kraken_contents:
+            print("DEBUG: No file detected in upload-kraken-data.")
+            raise PreventUpdate
+
+        try:
+            print(f"DEBUG: Kraken File Uploaded - {kraken_filename}")  # Debugging
+
+            # Decode file
+            content_type, content_string = kraken_contents.split(',')
+            decoded = io.BytesIO(base64.b64decode(content_string))
+
+            # Read Kraken TSV with tab separator
+            df = pd.read_csv(decoded, sep='\t', header=None)
+
+            # Debugging: Print first few rows
+            print(f"DEBUG: First few rows of the uploaded Kraken file:\n{df.head()}")
+
+            # Define expected Kraken TSV column headers
+            kraken_columns = ['percentage', 'reads_clade', 'reads_taxon', 'rank', 'NCBI_tax_ID', 'name']
+
+            # Verify column count
+            if df.shape[1] == len(kraken_columns):
+                df.columns = kraken_columns
+            else:
+                print(f"DEBUG: Unexpected column count in Kraken TSV (Expected: {len(kraken_columns)}, Found: {df.shape[1]})")
+                return f"Error: Unexpected number of columns in Kraken TSV", [], []
+
+            # Store in global uploaded_data dictionary
+            uploaded_data['data'] = {"Kraken TSV": df}
+
+            # Populate dropdowns
+            kraken_sheets = ["Kraken TSV"]
+            kraken_options = [{'label': sheet, 'value': sheet} for sheet in kraken_sheets]
+
+            print("DEBUG: Kraken TSV successfully stored in uploaded_data.")
+            return f"Uploaded: {kraken_filename}", kraken_options, kraken_options
+
+        except Exception as e:
+            print(f"ERROR: Failed to process Kraken TSV file - {e}")
+            return f"Error processing file: {e}", [], []
+
+
+
+
+
 
 
     @app.callback(
@@ -203,44 +257,52 @@ def register_callbacks(app, uploaded_data):
         return []
 
 
+
     @app.callback(
         [Output('sankey-plot', 'figure'), Output('sankey-table', 'children')],
-        Input('sankey-sheet-dropdown', 'value')
+        [Input('kraken-sheet-dropdown', 'value')]
     )
     def generate_sankey_plot_callback(sheet_name):
-        print("generate_sankey_plot_callback triggered")
-        
+        print("\n=== DEBUG: Sankey Plot Callback Triggered ===")  # Debugging log
+
         if sheet_name and 'data' in uploaded_data:
             try:
                 data_source = uploaded_data['data']
 
-                if isinstance(data_source, pd.ExcelFile):  # Excel File
-                    print(f"Loading Excel sheet: {sheet_name}")
-                    df = data_source.parse(sheet_name)
-                elif isinstance(data_source, dict) and sheet_name in data_source:  # TSV File
-                    print("Using TSV data")
+                # Use Kraken TSV Data
+                if isinstance(data_source, dict) and sheet_name in data_source:
                     df = data_source[sheet_name]
                 else:
-                    print("Error: Sheet not found in uploaded data")
+                    print("ERROR: Kraken TSV data not found in uploaded_data.")
                     return (
-                        go.Figure().update_layout(title="Error: Sheet not found"),
-                        html.Div("Error: Sheet not found")
+                        go.Figure().update_layout(title="Error: Kraken TSV Data Not Found"),
+                        html.Div("Error: Kraken TSV Data Not Found")
                     )
 
-                print(f"Data Loaded for Sankey Plot: {df.head()}")  # Debugging message
+                print(f"DEBUG: Kraken TSV Data Loaded for Sankey Plot: {df.head()}")  # Debugging
 
-                # **Call function correctly to extract both Figure and Table**
-                fig, table = build_sankey_from_kraken(df)  # Extract figure and table separately
-                
-                return fig, table  # Return both outputs
+                # Generate Sankey Diagram & Table
+                result = build_sankey_from_kraken(df)
+
+                # Ensure the return value is a valid tuple with two elements
+                if not isinstance(result, tuple) or len(result) != 2:
+                    print("ERROR: build_sankey_from_kraken() did not return a valid tuple!")
+                    return (
+                        go.Figure().update_layout(title="Error: Invalid Sankey Output"),
+                        html.Div("Error: Invalid Sankey Output")
+                    )
+
+                fig, table = result
+                return fig, table
 
             except Exception as e:
-                print(f"Error generating Sankey plot: {e}")
+                print(f"ERROR: Failed to generate Sankey plot - {e}")
                 return (
                     go.Figure().update_layout(title=f"Error: {e}"),
                     html.Div(f"Error generating table: {e}")
                 )
 
+        print("DEBUG: No Kraken sheet selected for Sankey plot.")
         return (
             go.Figure().update_layout(title="No Data to Display"),
             html.Div("No Data Available")
@@ -250,44 +312,51 @@ def register_callbacks(app, uploaded_data):
 
     @app.callback(
         Output('kraken-bar-plot', 'figure'),
-        Input('kraken-sheet-dropdown', 'value')
+        [Input('kraken-sheet-dropdown', 'value')]
     )
     def generate_kraken_stacked_bar_plot(sheet_name):
-        print(f"DEBUG: Selected Sheet: {sheet_name}")  # Debug log
+        print(f"\n=== DEBUG: Kraken Sheet Selected: {sheet_name} ===")  # Debugging log
 
         if sheet_name and 'data' in uploaded_data:
             try:
-                if isinstance(uploaded_data['data'], dict):
-                    df = uploaded_data['data'][sheet_name]  # For TSV files
-                else:
-                    df = uploaded_data['data'].parse(sheet_name)  # For Excel files
+                df = uploaded_data['data'].get(sheet_name, None)
 
-                # Debug: Print column names
-                print(f"DEBUG: DataFrame Columns Before Renaming: {df.columns.tolist()}")
+                if df is None:
+                    print("DEBUG: No data found for selected Kraken sheet.")
+                    return go.Figure().update_layout(title="Error: No data found")
 
-                # Rename Kraken2 TSV columns to match expected names
-                rename_mapping = {
-                    "rank": "rank",
-                    "reads_taxon": "direct_reads",  # Ensure this matches expected column in plot_stacked_bar_kraken()
-                    "name": "name"
-                }
-                
+                # Debug: Print DataFrame Columns
+                print(f"DEBUG: DataFrame Columns: {df.columns.tolist()}")
+
+                # Ensure required columns exist
+                required_columns = {"rank", "reads_taxon", "name"}
+                if not required_columns.issubset(df.columns):
+                    print("DEBUG: Missing required Kraken columns.")
+                    return go.Figure().update_layout(title="Error: Missing required columns")
+
+                # Rename columns for consistency
+                rename_mapping = {"rank": "rank", "reads_taxon": "direct_reads", "name": "name"}
                 df.rename(columns=rename_mapping, inplace=True)
 
-                # Debug: Print renamed columns
-                print(f"DEBUG: DataFrame Columns After Renaming: {df.columns.tolist()}")
+                # Convert direct_reads to integers
+                df["direct_reads"] = pd.to_numeric(df["direct_reads"], errors="coerce").fillna(0).astype(int)
 
-                # Pass to function after renaming
+                # Pass to plotting function
                 fig = plot_stacked_bar_kraken(df)
-                print("DEBUG: Kraken bar plot generated!")  # Debug log
 
+                print("DEBUG: Kraken bar plot successfully generated.")  # Debug log
                 return fig
 
             except Exception as e:
-                print(f"ERROR: {e}")
+                print(f"ERROR: Kraken bar plot generation failed - {e}")
                 return go.Figure().update_layout(title=f"Error: {e}")
 
-        print("DEBUG: No data selected.")
+        print("DEBUG: No Kraken sheet selected.")
         return go.Figure().update_layout(title="No Data to Display")
+
+
+
+
+
 
 

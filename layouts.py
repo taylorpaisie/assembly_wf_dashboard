@@ -60,7 +60,7 @@ def get_file_upload():
 def get_data_display():
     return dbc.Row(
         [
-            # Column for displaying spreadsheet data
+            # Spreadsheet Data Section
             dbc.Col(
                 dbc.Card(
                     [
@@ -72,7 +72,7 @@ def get_data_display():
                 width=6
             ),
 
-            # Column for Assembly_Depth bar plot
+            # Coverage Bar Plot Section
             dbc.Col(
                 dbc.Card(
                     [
@@ -97,42 +97,9 @@ def get_data_display():
                 ),
                 width=6
             ),
-
-            # Kraken Controls and Bar Plot (Fix: Ensuring they're always in the layout)
-            dbc.Col(
-                dbc.Card(
-                    [
-                        dbc.CardHeader(html.H5("Kraken Controls", className="text-white"), className="bg-secondary"),
-                        dbc.CardBody(
-                            [
-                                html.Div([
-                                    html.Label("Select a Kraken Sheet:", className="fw-bold"),
-                                    dcc.Dropdown(id='kraken-sheet-dropdown', placeholder="Select a sheet",
-                                        style={'color': '#000000', 'backgroundColor': '#ffffff'})
-                                ], className="mb-3"),
-                            ]
-                        ),
-                    ],
-                    className="shadow-sm mb-4"
-                ),
-                width=2
-            ),
-
-            # Kraken Bar Plot (Restoring missing plot)
-            dbc.Col(
-                dbc.Card(
-                    [
-                        dbc.CardHeader(html.H5("Kraken Bar Plot", className="text-white"), className="bg-secondary"),
-                        dbc.CardBody(
-                            dcc.Graph(id="kraken-bar-plot", figure={}, style={"height": "600px"})
-                        ),
-                    ],
-                    className="shadow-sm mb-4"
-                ),
-                width=7
-            ),
         ]
     )
+
 
 # Sankey plot section
 def get_sankey_section():
@@ -198,12 +165,129 @@ def get_sankey_section():
         html.P("4. The Sankey plot requires selecting a sample from the dataset."),
     ], style={'padding': '20px'})
 
+
+# Taxonomy Analysis Section
+def get_taxonomy_analysis_section():
+    return dbc.Container(
+        [
+            html.H3("Taxonomy Analysis", className="text-primary"),
+            html.P("Upload a Kraken2 TSV file to analyze taxonomic classifications."),
+
+            # File Upload Section for Kraken TSV
+            dbc.Card(
+                [
+                    dbc.CardHeader(html.H5("Upload Kraken TSV File", className="text-white"), className="bg-primary"),
+                    dbc.CardBody(
+                        [
+                            dcc.Upload(
+                                id='upload-kraken-data',
+                                children=html.Div([
+                                    html.I(className="bi bi-upload me-2"),
+                                    'Drag and Drop or ',
+                                    html.A('Select a Kraken TSV File', className="text-primary fw-bold")
+                                ]),
+                                style={
+                                    'width': '100%',
+                                    'height': '70px',
+                                    'lineHeight': '70px',
+                                    'borderWidth': '2px',
+                                    'borderStyle': 'dashed',
+                                    'borderRadius': '10px',
+                                    'textAlign': 'center',
+                                    'margin': '10px',
+                                    'backgroundColor': '#f8f9fa',
+                                    'color': '#000000'
+                                },
+                                multiple=False
+                            ),
+                            html.Div(id='kraken-upload-status', className='mt-2 text-success')
+                        ]
+                    ),
+                ],
+                className="shadow-sm mb-4"
+            ),
+
+            # Kraken Sheet Dropdown
+            dbc.Card(
+                [
+                    dbc.CardHeader(html.H5("Select Kraken Sheet", className="text-white"), className="bg-secondary"),
+                    dbc.CardBody(
+                        [
+                            html.Label("Select a Kraken Sheet:", className="fw-bold"),
+                            dcc.Dropdown(
+                                id='kraken-sheet-dropdown',
+                                placeholder="Select a Kraken sheet",
+                                style={'color': '#000000', 'backgroundColor': '#ffffff'}
+                            ),
+                        ]
+                    ),
+                ],
+                className="shadow-sm mb-4"
+            ),
+
+            # **NEW: Sankey Sheet Dropdown**
+            dbc.Card(
+                [
+                    dbc.CardHeader(html.H5("Select a Sheet for Sankey", className="text-white"), className="bg-secondary"),
+                    dbc.CardBody(
+                        [
+                            html.Label("Select a Sankey Sheet:", className="fw-bold"),
+                            dcc.Dropdown(
+                                id='sankey-sheet-dropdown',
+                                placeholder="Select a sheet",
+                                style={'color': '#000000', 'backgroundColor': '#ffffff'},
+                            ),
+                        ]
+                    ),
+                ],
+                className="shadow-sm mb-4"
+            ),
+
+            # Kraken Bar Plot
+            dbc.Card(
+                [
+                    dbc.CardHeader(html.H5("Kraken Bar Plot", className="text-white"), className="bg-secondary"),
+                    dbc.CardBody(
+                        dcc.Graph(id="kraken-bar-plot", figure={}, style={"height": "600px"})
+                    ),
+                ],
+                className="shadow-sm mb-4"
+            ),
+
+            # Sankey Plot Section
+            dbc.Card(
+                [
+                    dbc.CardHeader(html.H5("Sankey Plot", className="text-white"), className="bg-secondary"),
+                    dbc.CardBody(
+                        dcc.Graph(id='sankey-plot', style={'height': '600px'})
+                    ),
+                ]
+            ),
+            dbc.Card(
+                [
+                    dbc.CardHeader(html.H5("Sankey Table", className="text-white"), className="bg-secondary"),
+                    dbc.CardBody(
+                        html.Div(id='sankey-table')  # Placeholder for the table
+                    ),
+                ],
+                className="shadow-sm mb-4"
+            ),
+        ],
+        style={'padding': '20px'}
+    )
+
+
+
+
+
 def get_tabs_section():
     return dbc.Tabs([
         dbc.Tab(label="Dashboard", tab_id="tab-dashboard"),
+        dbc.Tab(label="Taxonomy Analysis", tab_id="tab-taxonomy-analysis"),  # New Tab
         dbc.Tab(label="About", tab_id="tab-about"),
         dbc.Tab(label="How to Use", tab_id="tab-how-to-use"),
     ], id="tabs", active_tab="tab-dashboard")
+
 
 def get_content():
     return html.Div(id="tab-content")
