@@ -6,6 +6,7 @@ import plotly.graph_objects as go
 from dash.dash_table import DataTable
 from plots import generate_sankey_plot
 from plotly.colors import qualitative
+from plotly.colors import sequential
 from sankey_plot_fixed import build_sankey_from_kraken 
 from kraken_bar_plot import plot_stacked_bar_kraken
 
@@ -108,9 +109,6 @@ def register_callbacks(app, uploaded_data):
 
 
 
-
-
-
     @app.callback(
         [Output('x-axis-dropdown', 'options'), Output('y-axis-dropdown', 'options')],
         Input('sheet-dropdown', 'value')
@@ -172,7 +170,8 @@ def register_callbacks(app, uploaded_data):
                     error_values = None
 
                 unique_x_values = x_values.unique()
-                color_palette = qualitative.Vivid
+                color_palette = qualitative.Alphabet
+                # color_palette = sequential.Viridis
                 color_map = {value: color for value, color in zip(unique_x_values, color_palette)}
                 colors = x_values.map(color_map)
 
@@ -353,7 +352,6 @@ def register_callbacks(app, uploaded_data):
 
         print("DEBUG: No Kraken sheet selected.")
         return go.Figure().update_layout(title="No Data to Display")
-
 
 
 

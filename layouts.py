@@ -282,7 +282,7 @@ def get_taxonomy_analysis_section():
 
 def get_tabs_section():
     return dbc.Tabs([
-        dbc.Tab(label="Dashboard", tab_id="tab-dashboard"),
+        dbc.Tab(label="Assembly Metrics", tab_id="tab-dashboard"),
         dbc.Tab(label="Taxonomy Analysis", tab_id="tab-taxonomy-analysis"),  # New Tab
         dbc.Tab(label="About", tab_id="tab-about"),
         dbc.Tab(label="How to Use", tab_id="tab-how-to-use"),
