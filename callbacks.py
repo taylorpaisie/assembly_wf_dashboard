@@ -108,7 +108,6 @@ def register_callbacks(app, uploaded_data):
 
 
 
-
     @app.callback(
         [
             Output('x-axis-dropdown', 'options'),
@@ -122,21 +121,31 @@ def register_callbacks(app, uploaded_data):
         if sheet_name and 'data' in uploaded_data:
             try:
                 df = uploaded_data['data'].parse(sheet_name)
+                
+                # Force numeric conversion
+                for col in df.columns:
+                    df[col] = pd.to_numeric(df[col], errors='coerce')
 
                 # Extract numeric columns for Y-axis and all columns for X-axis
                 all_cols = df.columns.tolist()
                 numeric_cols = df.select_dtypes(include='number').columns.tolist()
 
+                # Debugging: Print column types
+                print("All Columns:", all_cols)
+                print("Numeric Columns:", numeric_cols)
+
                 return (
-                    [{'label': col, 'value': col} for col in all_cols],  # X-axis options (existing plot)
-                    [{'label': col, 'value': col} for col in numeric_cols],  # Y-axis options (existing plot)
-                    [{'label': col, 'value': col} for col in all_cols],  # X-axis options (new plot)
-                    [{'label': col, 'value': col} for col in numeric_cols]  # Y-axis options (new plot)
+                    [{'label': col, 'value': col} for col in all_cols],
+                    [{'label': col, 'value': col} for col in numeric_cols],
+                    [{'label': col, 'value': col} for col in all_cols],
+                    [{'label': col, 'value': col} for col in numeric_cols]
                 )
             except Exception as e:
                 print(f"Error updating axis dropdowns: {e}")
                 return [], [], [], []
         return [], [], [], []
+
+
 
 
     @app.callback(

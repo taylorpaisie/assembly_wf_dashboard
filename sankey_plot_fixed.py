@@ -27,6 +27,9 @@ def build_sankey_from_kraken(df, min_reads=1, rank_filter=None, taxonomic_ranks=
         top_taxa = df.nlargest(10, "reads_clade")
         df = df[df["name"].isin(top_taxa["name"])]
 
+        # Normalize column names
+        df.columns = df.columns.str.replace(r'[^\w\s]', '_', regex=True).str.replace(r'\s+', '_', regex=True)
+
         df["name_clean"] = df["name"].str.strip()
         df["rank_level"] = df["rank"].apply(lambda x: taxonomic_ranks.index(x) if x in taxonomic_ranks else len(taxonomic_ranks))
         df = df.sort_values(by=["rank_level", "reads_clade"], ascending=[True, False])
