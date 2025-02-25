@@ -23,6 +23,10 @@ def build_sankey_from_kraken(df, min_reads=1, rank_filter=None, taxonomic_ranks=
         if rank_filter:
             df = df[df["rank"] == rank_filter]
 
+        # Filter for top 10 taxa by reads_clade
+        top_taxa = df.nlargest(10, "reads_clade")
+        df = df[df["name"].isin(top_taxa["name"])]
+
         df["name_clean"] = df["name"].str.strip()
         df["rank_level"] = df["rank"].apply(lambda x: taxonomic_ranks.index(x) if x in taxonomic_ranks else len(taxonomic_ranks))
         df = df.sort_values(by=["rank_level", "reads_clade"], ascending=[True, False])
@@ -44,15 +48,14 @@ def build_sankey_from_kraken(df, min_reads=1, rank_filter=None, taxonomic_ranks=
                 if parent_name in node_indices:
                     sources.append(node_indices[parent_name])
                     targets.append(node_indices[node_name])
-                    values.append(row["reads_clade"])  # Use actual reads count instead of log scaling
+                    values.append(row["reads_clade"])  # Use actual reads count
 
         color_palette = px.colors.qualitative.Plotly
         node_colors = [color_palette[i % len(color_palette)] for i in range(len(nodes))]
-        # link_colors = [node_colors[sources[i]] for i in range(len(sources))]
-        link_colors = ['rgba(180,180,180,0.5)' for _ in sources]  # Match parent node colors
+        link_colors = ['rgba(180,180,180,0.5)' for _ in sources]
 
         fig = go.Figure(data=[go.Sankey(
-            arrangement='snap',  # Clearer hierarchical layout
+            arrangement='snap',
             node=dict(
                 pad=15,
                 thickness=5,
@@ -71,10 +74,10 @@ def build_sankey_from_kraken(df, min_reads=1, rank_filter=None, taxonomic_ranks=
         )])
 
         fig.update_layout(
-            title_text='Enhanced Kraken2 Genus-Level Sankey Diagram',
+            title_text='Top 10 Kraken2 Genus-Level Sankey Diagram',
             font_size=10,
-            height=min(900, max(600, len(nodes) * 40)),
-            width=min(1300, max(800, len(nodes) * 50)),
+            height=min(900, max(500, len(nodes) * 40)),
+            width=min(1300, max(700, len(nodes) * 50)),
             margin=dict(l=80, r=80, t=80, b=80),
             hovermode='x unified'
         )

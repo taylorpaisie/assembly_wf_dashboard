@@ -110,38 +110,34 @@ def register_callbacks(app, uploaded_data):
 
 
     @app.callback(
-        [Output('x-axis-dropdown', 'options'), Output('y-axis-dropdown', 'options')],
+        [
+            Output('x-axis-dropdown', 'options'),
+            Output('y-axis-dropdown', 'options'),
+            Output('new-x-axis-dropdown', 'options'),
+            Output('new-y-axis-dropdown', 'options')
+        ],
         Input('sheet-dropdown', 'value')
     )
-    def update_axis_dropdowns(sheet_name):
+    def update_all_axis_dropdowns(sheet_name):
         if sheet_name and 'data' in uploaded_data:
             try:
-                if isinstance(uploaded_data['data'], pd.ExcelFile):  # Excel File
-                    df = uploaded_data['data'].parse(sheet_name)
-                elif isinstance(uploaded_data['data'], dict) and sheet_name in uploaded_data['data']:  # TSV File
-                    df = uploaded_data['data'][sheet_name]
-                else:
-                    return []
-
+                df = uploaded_data['data'].parse(sheet_name)
 
                 # Extract numeric columns for Y-axis and all columns for X-axis
                 all_cols = df.columns.tolist()
                 numeric_cols = df.select_dtypes(include='number').columns.tolist()
-                pattern_based_cols = [
-                    col for col in df.columns
-                    if df[col].astype(str).str.contains(r'^[\d.]+x_.*[\d.]+x$', na=False).any()
-                ]
-
-                combined_y_cols = numeric_cols + pattern_based_cols
 
                 return (
-                    [{'label': col, 'value': col} for col in all_cols],  # X-axis options
-                    [{'label': col, 'value': col} for col in combined_y_cols]  # Y-axis options
+                    [{'label': col, 'value': col} for col in all_cols],  # X-axis options (existing plot)
+                    [{'label': col, 'value': col} for col in numeric_cols],  # Y-axis options (existing plot)
+                    [{'label': col, 'value': col} for col in all_cols],  # X-axis options (new plot)
+                    [{'label': col, 'value': col} for col in numeric_cols]  # Y-axis options (new plot)
                 )
             except Exception as e:
                 print(f"Error updating axis dropdowns: {e}")
-                return [], []
-        return [], []
+                return [], [], [], []
+        return [], [], [], []
+
 
     @app.callback(
         Output('coverage-bar-plot', 'figure'),
@@ -203,6 +199,50 @@ def register_callbacks(app, uploaded_data):
                 return go.Figure().update_layout(title=f"Error: {e}")
 
         return go.Figure().update_layout(title="No Data to Display")
+
+
+    @app.callback(
+        Output('new-bar-plot', 'figure'),
+        [
+            Input('sheet-dropdown', 'value'),
+            Input('new-x-axis-dropdown', 'value'),
+            Input('new-y-axis-dropdown', 'value')
+        ]
+    )
+    def generate_new_dynamic_bar_plot(sheet_name, x_axis, y_axis):
+        if sheet_name and x_axis and y_axis and 'data' in uploaded_data:
+            try:
+                df = uploaded_data['data'].parse(sheet_name)
+                df = df.dropna(subset=[x_axis, y_axis])  # Remove rows with NaN values
+                x_values = df[x_axis]
+                y_values = pd.to_numeric(df[y_axis], errors='coerce')
+
+                fig = go.Figure(
+                    go.Bar(
+                        x=x_values,
+                        y=y_values,
+                        marker=dict(color='lightgreen'),
+                    )
+                )
+
+                fig.update_layout(
+                    title="Custom Bar Plot",
+                    xaxis_title=x_axis,
+                    yaxis_title=y_axis,
+                    plot_bgcolor='#2c2f34',
+                    paper_bgcolor='#1e1e1e',
+                    font_color="white"
+                )
+
+                return fig
+            except Exception as e:
+                return go.Figure().update_layout(title=f"Error: {e}")
+
+        return go.Figure().update_layout(title="Select X and Y Axis")
+
+
+
+
 
     @app.callback(
         Output('data-table-container', 'children'),
