@@ -210,8 +210,12 @@ def register_callbacks(app, uploaded_data):
         return go.Figure().update_layout(title="No Data to Display")
 
 
+
     @app.callback(
-        Output('new-bar-plot', 'figure'),
+        [
+            Output('new-bar-plot', 'figure'),
+            Output('new-bar-plot-table', 'children')  # New output for data table
+        ],
         [
             Input('sheet-dropdown', 'value'),
             Input('new-x-axis-dropdown', 'value'),
@@ -226,12 +230,13 @@ def register_callbacks(app, uploaded_data):
                 x_values = df[x_axis]
                 y_values = pd.to_numeric(df[y_axis], errors='coerce')
                 
-                # Use a color palette from Plotly
+                # Create color mapping for bar plot
                 unique_x_values = x_values.unique()
-                color_palette = qualitative.Plotly  # You can change to other palettes like qualitative.Dark24
+                color_palette = qualitative.Plotly
                 color_map = {value: color_palette[i % len(color_palette)] for i, value in enumerate(unique_x_values)}
                 colors = x_values.map(color_map)
 
+                # Generate the bar plot
                 fig = go.Figure(
                     go.Bar(
                         x=x_values,
@@ -249,11 +254,23 @@ def register_callbacks(app, uploaded_data):
                     font_color="white"
                 )
 
-                return fig
-            except Exception as e:
-                return go.Figure().update_layout(title=f"Error: {e}")
+                # Generate Data Table
+                table = DataTable(
+                    data=df[[x_axis, y_axis]].to_dict('records'),
+                    columns=[{"name": col, "id": col} for col in [x_axis, y_axis]],
+                    style_table={'overflowX': 'auto', 'backgroundColor': '#2c2f34'},
+                    style_header={'fontWeight': 'bold', 'color': 'white', 'backgroundColor': '#1e1e1e'},
+                    style_data={'color': 'white', 'backgroundColor': '#2c2f34'},
+                    page_size=10,
+                )
 
-        return go.Figure().update_layout(title="Select X and Y Axis")
+                return fig, table  # Return both figure and table
+
+            except Exception as e:
+                return go.Figure().update_layout(title=f"Error: {e}"), html.Div(f"Error displaying data: {e}")
+
+        return go.Figure().update_layout(title="Select X and Y Axis"), html.Div("No data to display", className="text-muted")
+
 
 
 

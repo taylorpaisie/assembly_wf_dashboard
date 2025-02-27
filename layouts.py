@@ -99,37 +99,52 @@ def get_data_display():
             ),
 
             # New Bar Plot Section
-# New Bar Plot Section with X and Y Dropdowns
-            dbc.Col(
-                dbc.Card(
-                    [
-                        dbc.CardHeader(html.H5("New Bar Plot", className="text-white"), className="bg-secondary"),
-                        dbc.CardBody(
+            dbc.Row(
+                [
+                    # Data Table on the Left
+                    dbc.Col(
+                        dbc.Card(
                             [
-                                html.Div([
-                                    html.Label("Select X-Axis:", className="fw-bold"),
-                                    dcc.Dropdown(
-                                        id='new-x-axis-dropdown',
-                                        placeholder="Select column for X-axis",
-                                        style={'color': '#000000', 'backgroundColor': '#ffffff'}
-                                    )
-                                ], className="mb-3"),
-                                html.Div([
-                                    html.Label("Select Y-Axis:", className="fw-bold"),
-                                    dcc.Dropdown(
-                                        id='new-y-axis-dropdown',
-                                        placeholder="Select column for Y-axis",
-                                        style={'color': '#000000', 'backgroundColor': '#ffffff'}
-                                    )
-                                ], className="mb-3"),
-                                dcc.Graph(id='new-bar-plot', style={'height': '500px'})
-                            ]
+                                dbc.CardHeader(html.H5("Data Table", className="text-white"), className="bg-secondary"),
+                                dbc.CardBody(
+                                    [
+                                        html.Div(id='new-bar-plot-table')  # Placeholder for table
+                                    ]
+                                ),
+                            ],
+                            className="shadow-sm mb-4"
                         ),
-                    ],
-                    className="shadow-sm mb-4"
-                ),
-                width=6
-            ),
+                        width=6  # Takes half the width
+                    ),
+
+                    # Bar Plot on the Right
+                    dbc.Col(
+                        dbc.Card(
+                            [
+                                dbc.CardHeader(html.H5("New Bar Plot", className="text-white"), className="bg-secondary"),
+                                dbc.CardBody(
+                                    [
+                                        html.Div([
+                                            html.Label("Select X-Axis:", className="fw-bold"),
+                                            dcc.Dropdown(id='new-x-axis-dropdown', placeholder="Select column for X-axis",
+                                                style={'color': '#000000', 'backgroundColor': '#ffffff'})
+                                        ], className="mb-3"),
+                                        html.Div([
+                                            html.Label("Select Y-Axis:", className="fw-bold"),
+                                            dcc.Dropdown(id='new-y-axis-dropdown', placeholder="Select column for Y-axis",
+                                            style={'color': '#000000', 'backgroundColor': '#ffffff'})
+                                        ], className="mb-3"),
+                                        dcc.Graph(id='new-bar-plot', style={'height': '500px'}),
+                                    ]
+                                ),
+                            ],
+                            className="shadow-sm mb-4"
+                        ),
+                        width=6  # Takes half the width
+                    ),
+                ]
+            )
+
 
 
         ]
