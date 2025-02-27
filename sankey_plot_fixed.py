@@ -64,8 +64,8 @@ def build_sankey_from_kraken(df, min_reads=1, rank_filter=None, taxonomic_ranks=
         fig = go.Figure(data=[go.Sankey(
             arrangement='snap',
             node=dict(
-                pad=15,
-                thickness=5,
+                pad=20,
+                thickness=10,
                 line=dict(color='black', width=1),
                 label=nodes,
                 color=node_colors,
