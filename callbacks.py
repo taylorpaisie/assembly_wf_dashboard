@@ -225,12 +225,18 @@ def register_callbacks(app, uploaded_data):
                 df = df.dropna(subset=[x_axis, y_axis])  # Remove rows with NaN values
                 x_values = df[x_axis]
                 y_values = pd.to_numeric(df[y_axis], errors='coerce')
+                
+                # Use a color palette from Plotly
+                unique_x_values = x_values.unique()
+                color_palette = qualitative.Plotly  # You can change to other palettes like qualitative.Dark24
+                color_map = {value: color_palette[i % len(color_palette)] for i, value in enumerate(unique_x_values)}
+                colors = x_values.map(color_map)
 
                 fig = go.Figure(
                     go.Bar(
                         x=x_values,
                         y=y_values,
-                        marker=dict(color='lightgreen'),
+                        marker=dict(color=colors),
                     )
                 )
 
