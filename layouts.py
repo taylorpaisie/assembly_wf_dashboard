@@ -164,12 +164,12 @@ def get_sankey_section():
                         ),
                         dbc.CardBody(
                             [
-                                html.Label("Select a Sheet for Sankey:", className="fw-bold"),
-                                dcc.Dropdown(
-                                    id='sankey-sheet-dropdown',
-                                    placeholder="Select a sheet",
-                                    style={'color': '#000000', 'backgroundColor': '#ffffff'},
-                                ),
+                                # html.Label("Select a Sheet for Sankey:", className="fw-bold"),
+                                # dcc.Dropdown(
+                                #     id='sankey-sheet-dropdown',
+                                #     placeholder="Select a sheet",
+                                #     style={'color': '#000000', 'backgroundColor': '#ffffff'},
+                                # ),
                             ]
                         ),
                     ]
@@ -286,23 +286,6 @@ def get_taxonomy_analysis_section():
                 className="shadow-sm mb-4"
             ),
 
-            # Move Sankey Sheet Dropdown Below Kraken Bar Plot
-            dbc.Card(
-                [
-                    dbc.CardHeader(html.H5("Select a Sheet for Sankey", className="text-white"), className="bg-secondary"),
-                    dbc.CardBody(
-                        [
-                            html.Label("Select a Sankey Sheet:", className="fw-bold"),
-                            dcc.Dropdown(
-                                id='sankey-sheet-dropdown',
-                                placeholder="Select a sheet",
-                                style={'color': '#000000', 'backgroundColor': '#ffffff'},
-                            ),
-                        ]
-                    ),
-                ],
-                className="shadow-sm mb-4"
-            ),
 
             # Sankey Plot Section
             dbc.Card(

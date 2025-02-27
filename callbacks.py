@@ -55,8 +55,7 @@ def register_callbacks(app, uploaded_data):
     @app.callback(
         [
             Output('kraken-upload-status', 'children'),
-            Output('kraken-sheet-dropdown', 'options'),
-            Output('sankey-sheet-dropdown', 'options')  # Ensures only Kraken upload updates Sankey dropdown
+            Output('kraken-sheet-dropdown', 'options')
         ],
         [Input('upload-kraken-data', 'contents')],
         [State('upload-kraken-data', 'filename')],
@@ -90,7 +89,7 @@ def register_callbacks(app, uploaded_data):
                 df.columns = kraken_columns
             else:
                 print(f"DEBUG: Unexpected column count in Kraken TSV (Expected: {len(kraken_columns)}, Found: {df.shape[1]})")
-                return f"Error: Unexpected number of columns in Kraken TSV", [], []
+                return f"Error: Unexpected number of columns in Kraken TSV", []
 
             # Store in global uploaded_data dictionary
             uploaded_data['data'] = {"Kraken TSV": df}
@@ -100,11 +99,12 @@ def register_callbacks(app, uploaded_data):
             kraken_options = [{'label': sheet, 'value': sheet} for sheet in kraken_sheets]
 
             print("DEBUG: Kraken TSV successfully stored in uploaded_data.")
-            return f"Uploaded: {kraken_filename}", kraken_options, kraken_options
+            return f"Uploaded: {kraken_filename}", kraken_options  # ✅ Fixed: Now returns only 2 values
 
         except Exception as e:
             print(f"ERROR: Failed to process Kraken TSV file - {e}")
-            return f"Error processing file: {e}", [], []
+            return f"Error processing file: {e}", []
+
 
 
 
