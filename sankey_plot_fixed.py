@@ -4,7 +4,8 @@ import plotly.express as px
 from dash import dash_table, html
 import numpy as np
 
-def build_sankey_from_kraken(df, min_reads=1, rank_filter=None, taxonomic_ranks=['G']):
+def build_sankey_from_kraken(df, min_reads=1, rank_filter=None, taxonomic_ranks=['G', 'S']):
+# def build_sankey_from_kraken(df, min_reads=1, rank_filter=None, taxonomic_ranks=['D', 'P', 'F', 'G', 'S']):
     try:
         column_mapping = {
             "direct_reads": "reads_taxon"
@@ -23,6 +24,9 @@ def build_sankey_from_kraken(df, min_reads=1, rank_filter=None, taxonomic_ranks=
         if rank_filter:
             df = df[df["rank"] == rank_filter]
 
+        # Remove "R" from ranks explicitly
+        df = df[df["rank"].isin(taxonomic_ranks) & (df["rank"] != "R")]
+
         # Filter for top 10 taxa by reads_clade
         top_taxa = df.nlargest(10, "reads_clade")
         df = df[df["name"].isin(top_taxa["name"])]
@@ -32,7 +36,7 @@ def build_sankey_from_kraken(df, min_reads=1, rank_filter=None, taxonomic_ranks=
 
         df["name_clean"] = df["name"].str.strip()
         df["rank_level"] = df["rank"].apply(lambda x: taxonomic_ranks.index(x) if x in taxonomic_ranks else len(taxonomic_ranks))
-        df = df.sort_values(by=["rank_level", "reads_clade"], ascending=[True, False])
+        df = df.sort_values(by=["rank_level", "reads_clade"], ascending=[True, True])
 
         node_indices = {}
         nodes = []
