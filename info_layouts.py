@@ -22,7 +22,8 @@ def get_about_section():
                 html.Li("🔹 Generate stacked bar plots for coverage depth"),
                 html.Li("🔹 Select individual sheets and samples for analysis"),
             ]),
-            html.P("This tool is developed to assist bioinformaticians in taxonomic and assembly depth analysis."),
+        
+            html.P("This tool is developed to assist labortory and bioinformatics scientists in taxonomic and assembly depth analysis."),
             html.P([
                 "This application was created and maintained by Taylor K. Paisie. Check out my ",
                 html.A("website", href="https://taylorpaisie.github.io/", target="_blank", className="text-primary fw-bold"),
@@ -59,6 +60,8 @@ def get_how_to_use_section():
                 html.Li("If using Kraken2 data, confirm that it includes taxonomic rank information."),
                 html.Li("For large datasets, expect a short processing time."),
             ]),
+            
+            html.P("Keep in mind, the larger your dataset is, the more time it will take the load the data and display in plots."),
             html.P("By following these steps, you can easily explore your dataset."),
 
             html.Figure([
