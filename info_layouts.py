@@ -23,7 +23,7 @@ def get_about_section():
                 html.Li("🔹 Select individual sheets and samples for analysis"),
             ]),
         
-            html.P("This tool is developed to assist labortory and bioinformatics scientists in taxonomic and assembly depth analysis."),
+            html.P("This tool is developed to assist laboratory and bioinformatics scientists in taxonomic and assembly depth analysis."),
             html.P([
                 "This application was created and maintained by Taylor K. Paisie. Check out my ",
                 html.A("website", href="https://taylorpaisie.github.io/", target="_blank", className="text-primary fw-bold"),
