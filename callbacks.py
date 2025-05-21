@@ -345,7 +345,7 @@ def register_callbacks(app, uploaded_data):
                         html.Div("Error: Kraken TSV Data Not Found")
                     )
 
-                fig, table = build_sankey_from_kraken(df)
+                fig, table = build_sankey_from_kraken(df, sample_name=sheet_name)
                 return fig, table
 
             except Exception as e:
@@ -404,8 +404,6 @@ def register_callbacks(app, uploaded_data):
 
         print("DEBUG: No Kraken sheet selected.")
         return go.Figure().update_layout(title="No Data to Display")
-
-
 
 
 
