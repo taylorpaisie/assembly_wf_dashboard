@@ -95,7 +95,10 @@ def register_callbacks(app, uploaded_data):
             uploaded_data['data'] = {"Kraken TSV": df}
 
             # Populate dropdowns
-            kraken_sheets = ["Kraken TSV"]
+            sample_label = kraken_filename.split("_")[0]  # Use "3N09_L006_L000" as label
+            kraken_sheets = [sample_label]
+            uploaded_data['data'] = {sample_label: df}
+
             kraken_options = [{'label': sheet, 'value': sheet} for sheet in kraken_sheets]
 
             print("DEBUG: Kraken TSV successfully stored in uploaded_data.")
