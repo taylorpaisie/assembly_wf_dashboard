@@ -4,8 +4,7 @@ import plotly.express as px
 from dash import dash_table, html
 import numpy as np
 
-def build_sankey_from_kraken(df, min_reads=1, rank_filter=None, taxonomic_ranks=['G', 'S']):
-# def build_sankey_from_kraken(df, min_reads=1, rank_filter=None, taxonomic_ranks=['D', 'P', 'F', 'G', 'S']):
+def build_sankey_from_kraken(df, min_reads=1, rank_filter=None, taxonomic_ranks=['G', 'S'], sample_name=None):
     try:
         column_mapping = {
             "direct_reads": "reads_taxon"
@@ -81,7 +80,7 @@ def build_sankey_from_kraken(df, min_reads=1, rank_filter=None, taxonomic_ranks=
         )])
 
         fig.update_layout(
-            title_text='Top 10 Kraken2 Species-Level Sankey Diagram',
+            title_text=f'Top 10 Kraken2 Species-Level Sankey Diagram{f" - {sample_name}" if sample_name else ""}',
             font_size=12,
             height=min(1100, max(500, len(nodes) * 40)),
             width=min(1500, max(700, len(nodes) * 50)),
