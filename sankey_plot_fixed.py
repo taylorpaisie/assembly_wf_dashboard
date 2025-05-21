@@ -81,7 +81,7 @@ def build_sankey_from_kraken(df, min_reads=1, rank_filter=None, taxonomic_ranks=
         )])
 
         fig.update_layout(
-            title_text='Top 10 Kraken2 Genus-Level Sankey Diagram',
+            title_text='Top 10 Kraken2 Species-Level Sankey Diagram',
             font_size=12,
             height=min(1100, max(500, len(nodes) * 40)),
             width=min(1500, max(700, len(nodes) * 50)),
