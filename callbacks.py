@@ -196,7 +196,7 @@ def register_callbacks(app, uploaded_data):
                 ))
 
                 fig.update_layout(
-                    title="Coverage Bar Plot with Error Bars" if error_values is not None else "Coverage Bar Plot",
+                    title=f"{y_axis}" if error_values is not None else f"{y_axis} Plot",
                     xaxis_title=x_axis,
                     yaxis_title="Coverage (Mean ± StdDev)" if error_values is not None else y_axis,
                     xaxis=dict(tickangle=-45),
@@ -204,6 +204,7 @@ def register_callbacks(app, uploaded_data):
                     paper_bgcolor='#1e1e1e',
                     font_color="white"
                 )
+
                 return fig
 
             except Exception as e:
