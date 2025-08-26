@@ -10,7 +10,7 @@ cd assembly_wf_dashboard
 
 # 2) Create the environment (Mamba is faster, Conda also fine)
 ```
-mamba env create -f environment.yml   # or: conda env create -f environment.yml
+conda env create -f environment.yml
 conda activate asm-dashboard
 ```
 
