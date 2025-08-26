@@ -1,0 +1,13 @@
+name: asm-dashboard
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pandas>=2.0
+  - plotly>=5.18
+  - openpyxl
+  - pip
+  - pip:
+      - dash>=2,<4
+      - dash-bootstrap-components>=1.5
+      - gunicorn
